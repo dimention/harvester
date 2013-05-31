@@ -5,7 +5,7 @@ What is that?
 -------------
 
 **Harvester** is eRepublik web scraping utility. It allows you easily get useful information directly from game.
-It's written in PHP and based mainly on DOMXPath library.
+It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+
 
 Get started
 -----------
