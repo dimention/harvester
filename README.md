@@ -37,21 +37,58 @@ $client->setPassword('your_erepublik_password');
 Modules
 -------
 ###Citizen
-Get citizen profile:
 ```php
-// assumes you have your Client object already set up
 use Erpk\Harvester\Module\Citizen\CitizenModule;
+// assumes you have your Client object already set up
 $module = new CitizenModule($client);
 
+// Get citizen profile
 $citizen = $module->get(2020512);
 echo $citizen['name']; // Romper
+
+// Search for citizens by name
+$results = $module->search('Romp', 1); // page 1
+print_r($results);
+```
+###Military
+```php
+use Erpk\Harvester\Module\Military\MilitaryModule;
+$module = new MilitaryModule($client);
+
+$activeCampaigns = $module->getActiveCampaigns();
+
+$campaign = $module->getCampaign(41661);
+
+$unit = $module->getUnit(5);
+
+$regiment = $module->getRegiment(5, 1);
 ```
 
-Search for citizens by name:
+###Exchange
 ```php
-use Erpk\Harvester\Module\Citizen\CitizenModule;
-$module = new CitizenModule($client);
+use Erpk\Harvester\Module\Exchange\ExchangeModule;
+$module = new ExchangeModule($client);
 
-$results = $module->search('Romp', 1);
-print_r($results);
+// Offers for buy currency, page 1
+$offers = $module->scan(ExchangeModule::CURRENCY, 1);
+
+// Offers for buy gold, page 1
+$offers = $module->scan(ExchangeModule::GOLD, 1);
+
+// Buy offer
+$response = $module->buy($offerId, $amountToBuy);
+```
+
+###JobMarket
+```php
+use Erpk\Harvester\Module\JobMarket\JobMarketModule;
+$module = new JobMarketModule($client);
+
+// Job offers in Poland, page 1
+use Erpk\Common\EntityManager;
+$em = EntityManager::getInstance();
+$countries = $em->getRepository('\Erpk\Common\Entity\Country');
+
+$poland = $countries->findOneByCode('PL');
+$offers = $module->scan($poland, 1);
 ```
