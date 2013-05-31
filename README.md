@@ -92,3 +92,40 @@ $countries = $em->getRepository('\Erpk\Common\Entity\Country');
 $poland = $countries->findOneByCode('PL');
 $offers = $module->scan($poland, 1);
 ```
+
+###Market
+```php
+use Erpk\Harvester\Module\Market\MarketModule;
+$module = new MarketModule($client);
+
+// Q7 weapons offers in Poland, page 1
+use Erpk\Common\EntityManager;
+$em = EntityManager::getInstance();
+$countries = $em->getRepository('\Erpk\Common\Entity\Country');
+$industries = $em->getRepository('\Erpk\Common\Entity\Industry');
+
+$poland = $countries->findOneByCode('PL');
+$weapons = $industries->findOneByCode('weapons');
+
+$offers = $module->scan($poland, $weapons, 7, 1);
+
+// And now buy some weapons
+$response = $module->buy($offers[0], 15);
+```
+
+###Country
+```php
+use Erpk\Harvester\Module\Country\CountryModule;
+$module = new CountryModule($client);
+
+// Get Poland's society information
+use Erpk\Common\EntityManager;
+$em = EntityManager::getInstance();
+$countries = $em->getRepository('\Erpk\Common\Entity\Country');
+$poland = $countries->findOneByCode('PL');
+
+$society = $module->getSociety($poland);
+
+// And economical data...
+$economy = $module->getEconomy($poland);
+```
