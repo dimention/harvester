@@ -25,7 +25,6 @@ Client
 
 Client is object required in every Harvester module. How to create it?
 ```php
-<?php
 require __DIR__.'/vendor/autoload.php';
 
 use Erpk\Harvester\Client\Client;
@@ -38,12 +37,21 @@ $client->setPassword('your_erepublik_password');
 Modules
 -------
 ###Citizen
+Get citizen profile:
 ```php
 // assumes you have your Client object already set up
 use Erpk\Harvester\Module\Citizen\CitizenModule;
-
 $module = new CitizenModule($client);
 
 $citizen = $module->get(2020512);
 echo $citizen['name']; // Romper
+```
+
+Search for citizens by name:
+```php
+use Erpk\Harvester\Module\Citizen\CitizenModule;
+$module = new CitizenModule($client);
+
+$results = $module->search('Romp', 1);
+print_r($results);
 ```
