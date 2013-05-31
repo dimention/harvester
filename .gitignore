@@ -1,6 +1,7 @@
 # Ignore composer generated files
 bin/
-composer.phar
-composer.lock
-composer-test.lock
+composer*
 vendor/
+
+server/vendor/
+server/composer*

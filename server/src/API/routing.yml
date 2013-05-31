@@ -1,0 +1,43 @@
+citizen_profile:
+    pattern:   /citizen/profile/{id}.{_format}
+    defaults:  {_controller: CitizenController::profile, page: 1}
+
+citizen_search:
+    pattern: /citizen/search/{query}/{page}.{_format}
+    defaults:  {_controller: CitizenController::search, page: 1}
+
+battle_active:
+    pattern: /battle/active.{_format}
+    defaults:  {_controller: BattleController::active}
+
+battle:
+    pattern: /battle/{id}.{_format}
+    defaults:  {_controller: BattleController::battle}
+
+country_society:
+    pattern: /country/{code}/society.{_format}
+    defaults:  {_controller: CountryController::society}
+
+country_economy:
+    pattern: /country/{code}/economy.{_format}
+    defaults:  {_controller: CountryController::economy}
+
+exchange:
+    pattern: /exchange/{mode}/{page}.{_format}
+    defaults:  {_controller: ExchangeController::get, page: 1}
+
+jobmarket:
+    pattern: /jobmarket/{code}/{page}.{_format}
+    defaults:  {_controller: JobMarketController::get, page: 1}
+
+market:
+    pattern: /market/{country}/{industry}/{quality}/{page}.{_format}
+    defaults:  {_controller: MarketController::get, page: 1, quality: 1}
+
+unit:
+    pattern: /unit/{unit}.{_format}
+    defaults:  {_controller: MUController::get}
+
+regiment:
+    pattern: /unit/{unit}/{regiment}.{_format}
+    defaults:  {_controller: MUController::getRegiment}
