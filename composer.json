@@ -1,0 +1,14 @@
+{
+    "name": "erpk/harvester",
+    "require": {
+        "guzzle/guzzle": "3.4.*",
+        "doctrine/orm": "2.3.*",
+        "erpk/common": "0.2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Erpk\\Harvester": "src/",
+            "Erpk\\Harvester\\Tests": "tests/"
+        }
+    }
+}
