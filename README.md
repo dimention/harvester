@@ -5,13 +5,13 @@ What is that?
 -------------
 
 **Harvester** is eRepublik web scraping utility. It allows you easily get useful information directly from game.
-It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+
+It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+. For **standalone API webserver** look in [erpk/harsever](https://github.com/erpk/harserver).
 
 Get started
 -----------
 
 Recommended way to install library is getting it through [Composer](http://getcomposer.org/).
-Example of composer.json file:
+Create composer.json file in your application directory:
 ```json
 {
     "require": {
@@ -20,11 +20,22 @@ Example of composer.json file:
 }
 ```
 
+Then download latest [composer.phar](http://getcomposer.org/composer.phar) and run following command:
+```
+php composer.phar install
+```
+That command will install Harvester along with all its dependencies. Now, in order to use libraries, you have to include autoloader, which is located in `vendor/autoload.php`.
+```php
+<?php
+require __DIR__.'/vendor/autoload.php';
+```
+
 Client
 ------
 
 Client is object required in every Harvester module. How to create it?
 ```php
+<?php
 require __DIR__.'/vendor/autoload.php';
 
 use Erpk\Harvester\Client\Client;
@@ -36,6 +47,7 @@ $client->setPassword('your_erepublik_password');
 
 Modules
 -------
+Following examples assume you have already set up your Client and included autoloader.
 ###Citizen
 ```php
 use Erpk\Harvester\Module\Citizen\CitizenModule;
