@@ -1,5 +1,3 @@
-# Ignore composer generated files
-bin/
 composer.phar
 composer.lock
 vendor/
