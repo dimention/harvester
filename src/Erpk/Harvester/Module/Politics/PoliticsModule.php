@@ -1,12 +1,13 @@
 <?php
-namespace Erpk\Harvester\Module;
+namespace Erpk\Harvester\Module\Politics;
 
+use Erpk\Harvester\Module\Module;
 use Erpk\Harvester\Exception\ScrapeException;
 use Erpk\Harvester\Exception\NotFoundException;
 use Erpk\Harvester\Client\Selector;
 use Erpk\Harvester\Filter;
 
-class Politics extends Module
+class PoliticsModule extends Module
 {
     public function getParty($id)
     {
