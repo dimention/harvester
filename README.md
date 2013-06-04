@@ -4,7 +4,7 @@ README
 What is that?
 -------------
 
-**Harvester** is eRepublik web scraping utility. It allows you easily get useful information directly from game.
+**Harvester** is eRepublik web scraping utility. Originally, Harvester was used by [api.erpk.org](http://api.erpk.org), but I decided to release it open source. It allows you easily get useful information directly from game.
 It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+. For **standalone API webserver** look in [erpk/harsever](https://github.com/erpk/harserver).
 
 Get started
