@@ -37,19 +37,19 @@ class ManagementModule extends Module
         
         $result = array();
         
-        $parseItem = function ($label, $item) use (&$result) {
+        $parseItem = function ($item) use (&$result) {
             $ex = explode('_', str_replace('stock_', '', $item->select('strong/@id')->extract()));
-            $result[$label][(int)$ex[0]][(int)$ex[1]] = (int)strtr($item->select('strong')->extract(), array(','=>''));
+            $result['items'][(int)$ex[0]][(int)$ex[1]] = (int)strtr($item->select('strong')->extract(), array(','=>''));
         };
         
         $items = $hxs->select('//*[@class="item_mask"][1]/ul[1]/li');
         foreach ($items as $item) {
-            $parseItem('final_products', $item);
+            $parseItem($item);
         }
         
         $items = $hxs->select('//*[@class="item_mask"][2]/ul[1]/li');
         foreach ($items as $item) {
-            $parseItem('raw_materials', $item);
+            $parseItem($item);
         }
         
         $storage = trim($hxs->select('//*[@class="area storage"][1]/h4[1]/strong[1]')->extract());
