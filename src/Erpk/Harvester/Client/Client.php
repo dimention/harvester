@@ -11,8 +11,6 @@ class Client extends GuzzleClient
 {
     protected $email;
     protected $password;
-    
-    protected $userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17';
     protected $session;
     protected $proxy = null;
     
@@ -22,8 +20,6 @@ class Client extends GuzzleClient
             'http://www.erepublik.com/en',
             array('redirect.disable' => true)
         );
-        
-        $this->setUserAgent($this->userAgent);
         
         $this->getConfig()->set(
             'curl.options',
@@ -41,6 +37,8 @@ class Client extends GuzzleClient
             ->set('Accept-Charset', 'ISO-8859-2,utf-8;q=0.7,*;q=0.3')
             ->set('Accept-Language', 'pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4');
         $this->getEventDispatcher()->addSubscriber(new MaintenancePlugin);
+
+        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
     }
     
     public function setEmail($email)
