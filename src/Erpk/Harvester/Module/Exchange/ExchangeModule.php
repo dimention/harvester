@@ -81,7 +81,7 @@ class ExchangeModule extends Module
                 'page'    => 0
             )
         );
-        $request->setHeader('Referer', 'http://www.erepublik.com/en/economy/exchange-market/');
+        $request->setHeader('Referer', $this->getClient()->getBaseUrl().'/economy/exchange-market/');
         $response = $request->send();
         return json_decode($response->getBody(true), true);
     }

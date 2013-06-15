@@ -14,10 +14,10 @@ class Client extends GuzzleClient
     protected $session;
     protected $proxy = null;
     
-    public function __construct()
+    public function __construct($locale = 'en')
     {
         parent::__construct(
-            'http://www.erepublik.com/en',
+            'http://www.erepublik.com/'.$locale,
             array('redirect.disable' => true)
         );
         
