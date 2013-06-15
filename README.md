@@ -137,7 +137,21 @@ $countries = $em->getRepository('\Erpk\Common\Entity\Country');
 $poland = $countries->findOneByCode('PL');
 
 $society = $module->getSociety($poland);
+```
 
-// And economical data...
-$economy = $module->getEconomy($poland);
+###Management
+```php
+use Erpk\Harvester\Module\Country\ManagementModule;
+$module = new ManagementModule($client);
+
+// Refill energy
+$module->eat();
+// Get items in inventory
+$module->getInventory();
+// Train in all (four) training grounds
+$module->train(true, true, true, true);
+// Work as employee
+$module->workAsEmployee();
+// Get rewards for daily tasks
+$module->getDailyTasksReward();
 ```
