@@ -14,7 +14,9 @@ class ManagementModule extends Module
         $this->getClient()->checkLogin();
         
         $request = $this->getClient()->get('main/eat');
-        $request->getHeaders()->set('Referer', 'http://www.erepublik.com/en');
+        $request->getHeaders()
+            ->set('Referer', 'http://www.erepublik.com/en')
+            ->set('X-Requested-With', 'XMLHttpRequest');
         $query = $request->getQuery();
         $query
             ->set('format', 'json')
@@ -107,5 +109,65 @@ class ManagementModule extends Module
             'cc'   => (float)$hxs->select('//input[@id="eCash"][1]/@value')->extract(),
             'gold' => (float)$hxs->select('//input[@id="golden"][1]/@value')->extract(),
         );
+    }
+
+    public function train($q1 = true, $q2 = false, $q3 = false, $q4 = false)
+    {
+        $this->getClient()->checkLogin();
+        $grounds = $this->getTrainingGrounds();
+
+        $toTrain = array();
+        for ($i = 0; $i <= 3; $i++) {
+            if (${'q'.($i+1)} === true/* && $grounds[$i]['trained'] === false*/) {
+                $toTrain[] = array(
+                    'id' => (int)$grounds[$i]['id'],
+                    'train' => 1
+                );
+            }
+        }
+
+        $request = $this->getClient()->post('economy/train');
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', 'http://www.erepublik.com/pl/economy/training-grounds');
+        $request->addPostFields(
+            array(
+                '_token'  => $this->getSession()->getToken(),
+                'grounds' => $toTrain
+            )
+        );
+
+        $response = $request->send()->json();
+        return $response;
+    }
+
+    public function workAsEmployee()
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->post('economy/work');
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', '  http://www.erepublik.com/pl/economy/myCompanies');
+        $request->addPostFields(
+            array(
+                '_token'      => $this->getSession()->getToken(),
+                'action_type' => 'work'
+            )
+        );
+
+        $response = $request->send()->json();
+        return $response;
+    }
+    
+    public function getDailyTasksReward()
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->get('main/daily-tasks-reward');
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', '  http://www.erepublik.com/en');
+
+        $response = $request->send()->json();
+        return $response;
     }
 }
