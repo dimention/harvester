@@ -141,7 +141,7 @@ $society = $module->getSociety($poland);
 
 ###Management
 ```php
-use Erpk\Harvester\Module\Country\ManagementModule;
+use Erpk\Harvester\Module\Management\ManagementModule;
 $module = new ManagementModule($client);
 
 // Refill energy
