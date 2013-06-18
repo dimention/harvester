@@ -26,6 +26,27 @@ class ManagementModule extends Module
         $response = $request->send()->json();
         return $response;
     }
+
+    public function sendMessage($citizenId, $subject, $content)
+    {
+        $this->getClient()->checkLogin();
+
+        $request = $this->getClient()->post('main/messages-compose/'.$citizenId);
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', $this->getClient()->getBaseUrl().'/main/messages-compose/'.$citizenId);
+        $request->addPostFields(
+            array(
+                '_token'          => $this->getSession()->getToken(),
+                'citizen_name'    => $citizenId,
+                'citizen_subject' => $subject,
+                'citizen_message' => $content
+            )
+        );
+
+        $response = $request->send();
+        return $response->getBody(true);
+    }
     
     public function getInventory()
     {
