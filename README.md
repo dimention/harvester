@@ -67,13 +67,21 @@ print_r($results);
 use Erpk\Harvester\Module\Military\MilitaryModule;
 $module = new MilitaryModule($client);
 
+// Get list of active campaigns
 $activeCampaigns = $module->getActiveCampaigns();
-
+// Get campaign basic information
 $campaign = $module->getCampaign(41661);
-
+// Get current campaign statistics (points, influence bar)
+$campaignStats = $module->getCampaignStats($campaign);
+// Get information about Military Unit
 $unit = $module->getUnit(5);
-
+// Get information about regiment in Military Unit
 $regiment = $module->getRegiment(5, 1);
+
+// Choose side in resistance war
+$module->chooseSide(42113, MilitaryModule::SIDE_ATTACKER);
+// Make single kill in campaign
+$module->fight(42113);
 ```
 
 ###Exchange
@@ -83,10 +91,8 @@ $module = new ExchangeModule($client);
 
 // Offers for buy currency, page 1
 $offers = $module->scan(ExchangeModule::CURRENCY, 1);
-
 // Offers for buy gold, page 1
 $offers = $module->scan(ExchangeModule::GOLD, 1);
-
 // Buy offer
 $response = $module->buy($offerId, $amountToBuy);
 ```
@@ -113,8 +119,8 @@ $module = new MarketModule($client);
 // Q7 weapons offers in Poland, page 1
 use Erpk\Common\EntityManager;
 $em = EntityManager::getInstance();
-$countries = $em->getRepository('\Erpk\Common\Entity\Country');
-$industries = $em->getRepository('\Erpk\Common\Entity\Industry');
+$countries = $em->getRepository('Erpk\Common\Entity\Country');
+$industries = $em->getRepository('Erpk\Common\Entity\Industry');
 
 $poland = $countries->findOneByCode('PL');
 $weapons = $industries->findOneByCode('weapons');
@@ -133,7 +139,7 @@ $module = new CountryModule($client);
 // Get Poland's society information
 use Erpk\Common\EntityManager;
 $em = EntityManager::getInstance();
-$countries = $em->getRepository('\Erpk\Common\Entity\Country');
+$countries = $em->getRepository('Erpk\Common\Entity\Country');
 $poland = $countries->findOneByCode('PL');
 
 $society = $module->getSociety($poland);
@@ -154,4 +160,10 @@ $module->train(true, true, true, true);
 $module->workAsEmployee();
 // Get rewards for daily tasks
 $module->getDailyTasksReward();
+// Send private message to citizen with ID 123456
+$module->sendMessage(
+    123456,
+    'Subject of message',
+    'Content of message'
+);
 ```
