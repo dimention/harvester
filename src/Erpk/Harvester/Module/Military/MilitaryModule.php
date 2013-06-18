@@ -394,6 +394,5 @@ class MilitaryModule extends Module
         }
 
         $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
-        var_dump($request->send()->getBody(true));
     }
 }
