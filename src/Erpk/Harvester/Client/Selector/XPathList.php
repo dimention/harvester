@@ -7,7 +7,7 @@ use Countable;
 
 class XPathList implements Iterator, Countable
 {
-    protected $search=array();
+    protected $search = array();
     protected $result;
     protected $xpath;
     protected $length;

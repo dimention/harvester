@@ -16,7 +16,7 @@ class Session
         'citizen.name'  =>  null
     );
     
- public function __construct($savePath)
+    public function __construct($savePath)
     {
         $this->savePath=$savePath;
         $cookieJar = new ArrayCookieJar();
