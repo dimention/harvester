@@ -24,7 +24,7 @@ class MilitaryModule extends Module
         $listing = $hxs->select('//div[@id="battle_listing"]');
         $ul = array(
             'all'      => '//ul[@class="all_battles"]',
-            'bod'      => '//ul[@class="bod_listing"]',
+            'cotd'     => '//ul[@class="bod_listing"]',
             'country'  => '//ul[@class="country_battles"]',
             'allies'   => '//ul[@class="allies_battles"]'
         );
