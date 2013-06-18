@@ -387,12 +387,14 @@ class MilitaryModule extends Module
         $this->getClient()->checkLogin();
 
         $campaign = $this->getCampaign($campaignId);
-        if ($side === self::SIDE_ATTACKER) {
-            $country = $campaign->getAttacker();
-        } else {
-            $country = $campaign->getDefender();
-        }
+        if ($campaign->isResistance()) {
+            if ($side === self::SIDE_ATTACKER) {
+                $country = $campaign->getAttacker();
+            } else {
+                $country = $campaign->getDefender();
+            }
 
-        $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
+            $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
+        }
     }
 }
