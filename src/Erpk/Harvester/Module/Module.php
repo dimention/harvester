@@ -3,6 +3,7 @@ namespace Erpk\Harvester\Module;
 
 use Erpk\Common\EntityManager;
 use Erpk\Harvester\Client\Client;
+use Erpk\Harvester\Filter;
 
 abstract class Module
 {
@@ -29,5 +30,10 @@ abstract class Module
     public function getEntityManager()
     {
         return EntityManager::getInstance();
+    }
+
+    protected function filter(&$variable, $filter)
+    {
+        $variable = Filter::$filter($variable);
     }
 }

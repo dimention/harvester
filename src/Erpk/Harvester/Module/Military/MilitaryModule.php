@@ -2,16 +2,18 @@
 namespace Erpk\Harvester\Module\Military;
 
 use Erpk\Harvester\Module\Module;
+use Erpk\Harvester\Module\Military\Exception\CampaignNotFoundException;
 use Erpk\Harvester\Exception\ScrapeException;
 use Guzzle\Http\Exception\ClientErrorResponseException;
-use Guzzle\Common\Exception\ExceptionCollection;
-use Erpk\Harvester\Exception\NotFoundException;
 use Erpk\Harvester\Client\Selector;
 use Erpk\Common\Citizen\Rank;
-use Erpk\Harvester\Filter;
+use Erpk\Common\Entity\Campaign;
 
 class MilitaryModule extends Module
 {
+    const SIDE_ATTACKER = 0;
+    const SIDE_DEFENDER = 1;
+
     public function getActiveCampaigns()
     {
         $this->getClient()->checkLogin();
@@ -29,13 +31,13 @@ class MilitaryModule extends Module
         $result = array();
         
         foreach ($ul as $type => $xpath) {
-            $battles = $listing->select($xpath.'/li');
+            $campaigns = $listing->select($xpath.'/li');
             $result[$type] = array();
-            if (!$battles->hasResults()) {
+            if (!$campaigns->hasResults()) {
                 continue;
             }
             
-            foreach ($battles as $li) {
+            foreach ($campaigns as $li) {
                 $id = $li->select('@id')->extract();
                 $id = (int)substr($id, strpos($id, '-')+1);
                 $result[$type][] = $id;
@@ -93,97 +95,100 @@ class MilitaryModule extends Module
         $regionName = $hxs->select('//div[@id="pvp_header"][1]/h2[1]')->extract();
         $region = $regions->findOneByName($regionName);
         
-        $battle = new \Erpk\Common\Entity\Battle;
-        $battle->setId($id);
-        $battle->setAttacker($countries->find($mustInvert ? $defenderId : $invaderId));
-        $battle->setDefender($countries->find($mustInvert ? $invaderId : $defenderId));
-        $battle->setRegion($region);
-        $battle->setResistance($isResistance);
+        $campaign = new Campaign;
+        $campaign->setId($id);
+        $campaign->setAttacker($countries->find($mustInvert ? $defenderId : $invaderId));
+        $campaign->setDefender($countries->find($mustInvert ? $invaderId : $defenderId));
+        $campaign->setRegion($region);
+        $campaign->setResistance($isResistance);
         
-        return $battle;
+        return $campaign;
     }
     
     public function getCampaign($id)
     {
-        $startTime = microtime(true);
+        $this->filter($id, 'id');
         
-        $id = Filter::id($id);
-        
-        $battles = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Battle');
+        $campaigns = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Campaign');
         $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
+        $campaign = $campaigns->findOneById($id);
         
-        $battleData = $battles->findOneById($id);
-        
-        $this->getClient()->checkLogin();
-        try {
-            $requests[] = $this->getClient()->get('military/battle-stats/'.$id.'/1');
-            if ($battleData === null) {
-                $requests[] = $this->getClient()->get('military/battlefield/'.$id);
-            }
-            
-            $responses = $this->getClient()->send($requests);
-            
-            $battleStats = json_decode($responses[0]->getBody(true), true);
-            if ($battleData === null) {
-                /**
-                 * Resistance wars FIX
-                 */
-                if (
-                   $responses[1]->isRedirect() and
-                   preg_match('#^http://www.erepublik.com/en/wars/show/([0-9]+)$#', $responses[1]->getLocation())
-                ) {
-                    
-                    $war = $this->getClient()->get($responses[1]->getLocation())->send();
-                    preg_match(
-                        '#http://www.erepublik.com/en/military/battlefield-choose-side/[0-9]+/[0-9]+#',
-                        $war->getBody(true),
-                        $links
-                    );
-                    
-                    $responses[1] = $this->getClient()->get($links[0])->send();
-                    if ($responses[1]->isRedirect()) {
-                        $responses[1] = $this->getClient()->get($responses[1]->getLocation())->send();
-                    }
-                }
-                
-                $battleData = $this->parseBattleField($responses[1]->getBody(true));
-                $this->getEntityManager()->persist($battleData);
-                $this->getEntityManager()->flush();
-            }
-        } catch (ExceptionCollection $e) {
-            foreach ($e as $ee) {
-                if ($ee instanceof ClientErrorResponseException and
-                    $ee->getResponse()->getStatusCode() == 404) {
-                    throw new NotFoundException;
+        if ($campaign === null) {
+            $this->getClient()->checkLogin();
+            $request = $this->getClient()->get('military/battlefield/'.$id);
+
+            try {
+                $response = $request->send();
+            } catch (ClientErrorResponseException $e) {
+                if ($e->getResponse()->getStatusCode() == 404) {
+                    throw new CampaignNotFoundException;
                 } else {
-                    throw $ee;
+                    throw $e;
                 }
             }
+            /**
+             * Resistance wars FIX
+             */
+            if ($response->isRedirect() &&
+                preg_match('#^'.$this->getClient()->getBaseUrl().'/wars/show/([0-9]+)$#', $response->getLocation())
+            ) {
+                
+                $war = $this->getClient()->get($response->getLocation())->send();
+                preg_match(
+                    '#'.$this->getClient()->getBaseUrl().'/military/battlefield-choose-side/[0-9]+/[0-9]+#',
+                    $war->getBody(true),
+                    $links
+                );
+                
+                $response = $this->getClient()->get($links[0])->send();
+                if ($response->isRedirect()) {
+                    $response = $this->getClient()->get($response->getLocation())->send();
+                }
+            }
+            
+            $campaign = $this->parseBattleField($response->getBody(true));
+            $this->getEntityManager()->persist($campaign);
+            $this->getEntityManager()->flush();
         }
-        
-        $finished = $battleStats['division'][$battleData->getAttacker()->getId()]['total'] >= 83
-                    || $battleStats['division'][$battleData->getDefender()->getId()]['total'] >= 83;
+
+        return $campaign;
+    }
+
+    public function getCampaignStats(Campaign $campaign)
+    {
+        $this->getClient()->checkLogin();
+
+        $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
+        $request = $this->getClient()->get('military/battle-stats/'.$campaign->getId().'/1');
+        $stats = $request->send()->json();
+
+        $finished = $stats['division'][$campaign->getAttacker()->getId()]['total'] >= 83 ||
+                    $stats['division'][$campaign->getDefender()->getId()]['total'] >= 83;
         
         if (!$finished) {
-            $fightersData=$battleStats['fightersData'];
-            $current=array_shift($battleStats['stats']['current']);
+            $fightersData = $stats['fightersData'];
+            $current = array_shift($stats['stats']['current']);
         }
         
-        $battle = $battleData->toArray();
-        $battle['is_finished'] = $finished;
-        
-        $sides = array('attacker' => $battleData->getAttacker(), 'defender' => $battleData->getDefender());
-        foreach ($sides as $side => $info) {
-            $sideId = $info->getId();
+        $result = array(
+            'attacker' => array(),
+            'defender' => array()
+        );
+
+        foreach ($result as $side => $info) {
+            if ($side === 'attacker') {
+                $sideId = $campaign->getAttacker()->getId();
+            } else {
+                $sideId = $campaign->getDefender()->getId();
+            }
             
-            $battle[$side] = $info->toArray();
-            $battle[$side]['points'] =    (int)$battleStats['division'][$info->getId()]['total'];
-            $battle[$side]['divisions']    = array();
+            $result[$side]['points'] =    (int)$stats['division'][$sideId]['total'];
+            $result[$side]['divisions']    = array();
             
-            for ($n=1; $n<=4; $n++) {
+            for ($n = 1; $n <= 4; $n++) {
                 $tf = array();
-                if (isset($current[$n][$info->getId()])) {
-                    foreach ($current[$n][$info->getId()] as $fighter) {
+                if (isset($current[$n][$sideId])) {
+                    foreach ($current[$n][$sideId] as $fighter) {
                         $id = (int)$fighter['citizen_id'];
                         $data = $fightersData[$id];
                         $country = $countries->find($data['residence_country_id']);
@@ -203,27 +208,28 @@ class MilitaryModule extends Module
                     }
                 }
                 
-                $bar = $battleStats['division']['domination'][$n];
+                $bar = $stats['division']['domination'][$n];
                 if ($side == 'attacker') {
                     $bar = 100-$bar;
                 }
                 
-                $battle[$side]['divisions'][(int)$n] = array(
-                    'points'       => $battleStats['division'][$info->getId()][$n]['points'],
+                $result[$side]['divisions'][(int)$n] = array(
+                    'points'       => $stats['division'][$sideId][$n]['points'],
                     'bar'          => $bar,
-                    'domination'   => (int)$battleStats['division'][$info->getId()][$n]['domination'],
-                    'won'          => $battleStats['division'][$info->getId()][$n]['won']==1,
+                    'domination'   => (int)$stats['division'][$sideId][$n]['domination'],
+                    'won'          => $stats['division'][$sideId][$n]['won']==1,
                     'top_fighters' => $tf
                 );
             }
         }
         
-        return $battle;
+        $result['is_finished'] = $finished;
+        return $result;
     }
     
     public function getUnit($id)
     {
-        $id = Filter::id($id);
+        $this->filter($id, 'id');
         $request = $this->getClient()->get('main/group-list/members/'.$id);
         
         try {
@@ -291,28 +297,28 @@ class MilitaryModule extends Module
         return $result;
     }
     
-    public static function getUnitAvatar($id, DateTime $createdAt, $size = 'medium')
+    public static function getUnitAvatar($unitId, DateTime $createdAt, $size = 'medium')
     {
         return
             'http://static.erepublik.com/uploads/avatars/Groups/'.
             $createdAt->format('Y/m/d').'/'.
-            md5($id).'_'.$size.'.jpg';
+            md5($unitId).'_'.$size.'.jpg';
     }
     
-    public function getRegiment($unit, $regiment)
+    public function getRegiment($unitId, $regimentId)
     {
-        $unit = Filter::id($unit);
-        $regiment = Filter::id($regiment);
-        
+        $this->filter($unitId, 'id');
+        $this->filter($regimentId, 'id');
         $this->getClient()->checkLogin();
-        $request = $this->getClient()->get('main/group-list/members/'.$unit.'/'.$regiment);
+
+        $request = $this->getClient()->get('main/group-list/members/'.$unitId.'/'.$regimentId);
         $request->setHeader('X-Requested-With', 'XMLHttpRequest');
         
         try {
             $response = $request->send();
         } catch (ClientErrorResponseException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
-                throw new NotFoundException('Regiment '.$regiment.' not found.');
+                throw new NotFoundException('Regiment '.$regimentId.' not found.');
             } else {
                 throw $e;
             }
@@ -328,7 +334,7 @@ class MilitaryModule extends Module
             return array();
         }
         
-        $members = $hxs->select('//table[@regimentid="'.$regiment.'"][1]/tbody[1]/tr');
+        $members = $hxs->select('//table[@regimentid="'.$regimentId.'"][1]/tbody[1]/tr');
         
         if (!$members->hasResults()) {
             return array();
@@ -353,5 +359,41 @@ class MilitaryModule extends Module
             }
         }
         return $result;
+    }
+
+    public function fight($campaignId)
+    {
+        $this->filter($campaignId, 'id');
+        $this->getClient()->checkLogin();
+
+        $request = $this->getClient()->post('military/fight-shooot/'.$campaignId);
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', $this->getClient()->getBaseUrl().'/military/battlefield/'.$campaignId);
+        $request->addPostFields(
+            array(
+                '_token'   => $this->getSession()->getToken(),
+                'battleId' => $campaignId
+            )
+        );
+
+        $response = $request->send()->json();
+        return $response;
+    }
+    
+    public function chooseSide($campaignId, $side)
+    {
+        $this->filter($campaignId, 'id');
+        $this->getClient()->checkLogin();
+
+        $campaign = $this->getCampaign($campaignId);
+        if ($side === self::SIDE_ATTACKER) {
+            $country = $campaign->getAttacker();
+        } else {
+            $country = $campaign->getDefender();
+        }
+
+        $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
+        var_dump($request->send()->getBody(true));
     }
 }
