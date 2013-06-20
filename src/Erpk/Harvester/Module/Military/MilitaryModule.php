@@ -109,47 +109,39 @@ class MilitaryModule extends Module
     {
         $this->filter($id, 'id');
         
-        $campaigns = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Campaign');
-        $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
-        $campaign = $campaigns->findOneById($id);
-        
-        if ($campaign === null) {
-            $this->getClient()->checkLogin();
-            $request = $this->getClient()->get('military/battlefield/'.$id);
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->get('military/battlefield/'.$id);
 
-            try {
-                $response = $request->send();
-            } catch (ClientErrorResponseException $e) {
-                if ($e->getResponse()->getStatusCode() == 404) {
-                    throw new CampaignNotFoundException;
-                } else {
-                    throw $e;
-                }
+        try {
+            $response = $request->send();
+        } catch (ClientErrorResponseException $e) {
+            if ($e->getResponse()->getStatusCode() == 404) {
+                throw new CampaignNotFoundException;
+            } else {
+                throw $e;
             }
-            /**
-             * Resistance wars FIX
-             */
-            if ($response->isRedirect() &&
-                preg_match('#^'.$this->getClient()->getBaseUrl().'/wars/show/([0-9]+)$#', $response->getLocation())
-            ) {
-                
-                $war = $this->getClient()->get($response->getLocation())->send();
-                preg_match(
-                    '#'.$this->getClient()->getBaseUrl().'/military/battlefield-choose-side/[0-9]+/[0-9]+#',
-                    $war->getBody(true),
-                    $links
-                );
-                
-                $response = $this->getClient()->get($links[0])->send();
-                if ($response->isRedirect()) {
-                    $response = $this->getClient()->get($response->getLocation())->send();
-                }
-            }
-            
-            $campaign = $this->parseBattleField($response->getBody(true));
-            $this->getEntityManager()->persist($campaign);
-            $this->getEntityManager()->flush();
         }
+        /**
+         * Resistance wars FIX
+         */
+        if ($response->isRedirect() &&
+            preg_match('#^'.$this->getClient()->getBaseUrl().'/wars/show/([0-9]+)$#', $response->getLocation())
+        ) {
+            
+            $war = $this->getClient()->get($response->getLocation())->send();
+            preg_match(
+                '#'.$this->getClient()->getBaseUrl().'/military/battlefield-choose-side/[0-9]+/[0-9]+#',
+                $war->getBody(true),
+                $links
+            );
+            
+            $response = $this->getClient()->get($links[0])->send();
+            if ($response->isRedirect()) {
+                $response = $this->getClient()->get($response->getLocation())->send();
+            }
+        }
+        
+        $campaign = $this->parseBattleField($response->getBody(true));
 
         return $campaign;
     }
