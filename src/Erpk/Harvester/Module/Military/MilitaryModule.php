@@ -397,4 +397,37 @@ class MilitaryModule extends Module
             $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
         }
     }
+
+    /**
+     * Changes weapon in specified to desired quality
+     * @param  int     $campaignId    ID of campaign
+     * @param  int     $weaponQuality Desired weapon quality (10 stands for bazooka)
+     * @return bool    TRUE if successfuly changed weapon, FALSE if weapon not found
+     */
+    public function changeWeapon($campaignId, $weaponQuality = 7)
+    {
+        $this->getClient()->checkLogin();
+
+        $n = 0;
+        do {
+            $n++;
+            $request = $this->getClient()->post('military/change-weapon');
+            $request->getHeaders()
+                ->set('X-Requested-With', 'XMLHttpRequest')
+                ->set('Referer', $this->getClient()->getBaseUrl().'/military/battlefield/'.$campaignId);
+            $request->addPostFields(
+                array(
+                    '_token'   => $this->getSession()->getToken(),
+                    'battleId' => $campaignId
+                )
+            );
+            $data = $request->send()->json();
+        } while (isset($data['countWeapons'])
+              && isset($data['weaponId'])
+              && $n < $data['countWeapons']
+              && $data['weaponId'] != $weaponQuality
+        );
+
+        return isset($data['weaponId']) && $data['weaponId'] == $weaponQuality;
+    }
 }
