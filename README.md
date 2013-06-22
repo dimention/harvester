@@ -1,6 +1,3 @@
-README
-=========
-
 What is that?
 -------------
 
@@ -10,6 +7,14 @@ It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+. For
 Get started
 -----------
 
+###Easy
+[Download](http://harvester.erpk.org/archive/) latest **.phar** (PHP Archive) and include it in your code:
+```php
+<?php
+require __DIR__.'/harvester.phar';
+```
+
+###Recommended
 Recommended way to install library is getting it through [Composer](http://getcomposer.org/).
 Create composer.json file in your application directory:
 ```json
