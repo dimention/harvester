@@ -80,8 +80,17 @@ $regiment = $module->getRegiment(5, 1);
 
 // Choose side in resistance war
 $module->chooseSide(42113, MilitaryModule::SIDE_ATTACKER);
+// Choose weapon Q7 for particular campaign
+$module->changeWeapon(42113, 7);
 // Make single kill in campaign
 $module->fight(42113);
+
+// Check Daily Order status
+$doStatus = $module->getDailyOrderStatus();
+// ...then get reward if completed
+if ($doStatus['do_reward_on'] == true) {
+    $module->getDailyOrderReward($doStatus['do_mission_id'], $doStatus['groupId']);
+}
 ```
 
 ###Exchange
