@@ -27,6 +27,26 @@ class ManagementModule extends Module
         return $response;
     }
 
+    public function getEnergyStatus()
+    {
+        $this->getClient()->checkLogin();
+        
+        $request = $this->getClient()->get();
+        $html = $request->send()->getBody(true);
+        $hxs = Selector\XPath::loadHTML($html);
+
+        $result = array();
+
+        $current = explode(' / ', $hxs->select('//*[@id="current_health"][1]')->extract());
+
+        $result['energy'] = (int)$current[0];
+        $result['max_energy'] = (int)$current[1];
+
+        preg_match('/food_remaining = parseInt\("(\d+)", 10\);/', $html, $matches);
+        $result['food_recoverable_energy'] = (int)$matches[1];
+        return $result;
+    }
+
     public function sendMessage($citizenId, $subject, $content)
     {
         $this->getClient()->checkLogin();
