@@ -422,4 +422,40 @@ class MilitaryModule extends Module
 
         return isset($data['weaponId']) && $data['weaponId'] == $weaponQuality;
     }
+
+    public function getDailyOrderStatus()
+    {
+        $this->getClient()->checkLogin();
+
+        $request = $this->getClient()->get();
+        $html = $request->send()->getBody(true);
+
+        $hxs = Selector\XPath::loadHTML($html);
+        $groupId = (int)$hxs->select('//input[@type="hidden"][@id="groupId"]/@value')->extract();
+
+        preg_match('/var mapDailyOrder = (.*);/', $html, $matches);
+
+        $result = json_decode($matches[1], true);
+        $result['groupId'] = $groupId;
+        return $result;
+    }
+
+    public function getDailyOrderReward($missionId, $unitId)
+    {
+        $this->getClient()->checkLogin();
+
+        $request = $this->getClient()->post('military/group-missions');
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+            array(
+                '_token'    => $this->getSession()->getToken(),
+                'groupId'   => $unitId,
+                'missionId' => $missionId,
+                'action'    => 'check'
+            )
+        );
+        return $request->send()->json();
+    }
 }
