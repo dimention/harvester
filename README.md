@@ -2,19 +2,24 @@ What is that?
 -------------
 
 **Harvester** is eRepublik web scraping utility. Originally, Harvester was used by [api.erpk.org](http://api.erpk.org), but I decided to release it open source. It allows you easily get useful information directly from game.
-It's written in PHP and based mainly on DOMXPath library. Requires PHP 5.3+. For **standalone API webserver** look in [erpk/harsever](https://github.com/erpk/harserver).
+It's written in PHP and based mainly on DOMXPath library. It requires PHP 5.3+.
 
-Get started
------------
+Isn't your application written in PHP?
+--------------------------------------
 
-###Easy
-[Download](http://harvester.erpk.org/archive/) latest **.phar** (PHP Archive) and include it in your code:
+If your application isn't written in PHP, you may be looking for **standalone API webserver** - [erpk/harsever](https://github.com/erpk/harserver).
+
+Installation
+------------
+
+###Quick way
+[Download](http://dev.erpk.org/downloads) latest **.phar** (PHP Archive), decompress it and include in your code:
 ```php
 <?php
-require __DIR__.'/harvester.phar';
+require __DIR__.'/harvester-latest-dev.phar';
 ```
 
-###Recommended
+###Recommended way
 Recommended way to install library is getting it through [Composer](http://getcomposer.org/).
 Create composer.json file in your application directory:
 ```json
@@ -38,7 +43,7 @@ require __DIR__.'/vendor/autoload.php';
 Client
 ------
 
-Client is object required in every Harvester module. How to create it?
+Client is an object required in every Harvester module. How to create it?
 ```php
 <?php
 require __DIR__.'/vendor/autoload.php';
