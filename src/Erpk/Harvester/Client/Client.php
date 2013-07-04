@@ -33,12 +33,11 @@ class Client extends GuzzleClient
         
         $this->getDefaultHeaders()
             ->set('Expect', '')
-            ->set('Accept', 'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01')
-            ->set('Accept-Charset', 'ISO-8859-2,utf-8;q=0.7,*;q=0.3')
-            ->set('Accept-Language', 'pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4');
+            ->set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+            ->set('Accept-Language', 'en-US,en;q=0.8');
         $this->getEventDispatcher()->addSubscriber(new MaintenancePlugin);
 
-        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0');
+        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36');
     }
     
     public function setEmail($email)
