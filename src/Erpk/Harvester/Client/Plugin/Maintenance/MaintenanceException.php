@@ -1,6 +1,6 @@
 <?php
-namespace Erpk\Harvester\Exception;
+namespace Erpk\Harvester\Client\Plugin\Maintenance;
 
-class MaintenanceException extends \RuntimeException implements ExceptionInterface
+class MaintenanceException extends \RuntimeException
 {
 }
