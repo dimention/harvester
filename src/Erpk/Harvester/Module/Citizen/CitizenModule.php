@@ -258,7 +258,7 @@ class CitizenModule extends Module
         $xs = Selector\XPath::loadHTML($response->getBody(true));
         
         $paginator = new Selector\Paginator($xs);
-        if ($paginator->isOutOfRange($page)) {
+        if ($paginator->isOutOfRange($page) && $page > 1) {
             return array();
         }
         
