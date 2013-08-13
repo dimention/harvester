@@ -147,6 +147,20 @@ class CountryModule extends Module
             );
         }
         
+        /* SALARY */
+        $salary = $economy->select('h2[text()="Salary" and @class="section"]/following-sibling::div[1]/table/tr');
+		foreach ($salary as $k => $tr) {
+            if ($tr->select('th')->hasResults()) {
+                continue;
+            }
+			$i = $tr->select('td[position()>=1 and position()<=2]/span');
+            if (count($i)!=2) {
+                throw new ScrapeException;
+            }
+			$type = $i->item(0)->extract();
+            $result['salary'][$type] = (float)$i->item(1)->extract();
+		}
+        
         /* EMBARGOES */
         $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
         $result['embargoes'] = array();
