@@ -3,6 +3,8 @@ namespace Erpk\Harvester\Module\Military;
 
 use Erpk\Harvester\Module\Module;
 use Erpk\Harvester\Module\Military\Exception\CampaignNotFoundException;
+use Erpk\Harvester\Module\Military\Exception\UnitNotFoundException;
+use Erpk\Harvester\Module\Military\Exception\RegimentNotFoundException;
 use Erpk\Harvester\Exception\ScrapeException;
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Erpk\Harvester\Client\Selector;
@@ -228,7 +230,7 @@ class MilitaryModule extends Module
             $response = $request->send();
         } catch (ClientErrorResponseException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
-                throw new NotFoundException('Military Unit '.$id.' not found.');
+                throw new UnitNotFoundException('Military Unit '.$id.' not found.');
             } else {
                 throw $e;
             }
@@ -310,7 +312,7 @@ class MilitaryModule extends Module
             $response = $request->send();
         } catch (ClientErrorResponseException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
-                throw new NotFoundException('Regiment '.$regimentId.' not found.');
+                throw new RegimentNotFoundException('Regiment '.$regimentId.' not found.');
             } else {
                 throw $e;
             }
