@@ -16,6 +16,10 @@ class MilitaryModule extends Module
     const SIDE_ATTACKER = 0;
     const SIDE_DEFENDER = 1;
 
+    /**
+     * Returns list of active campaigns
+     * @return array List of active campaings
+     */
     public function getActiveCampaigns()
     {
         $this->getClient()->checkLogin();
@@ -113,6 +117,11 @@ class MilitaryModule extends Module
         return $campaign;
     }
     
+    /**
+     * Returns static information about given campaign
+     * @param  int    $id Campaign ID
+     * @return array  Array with basic information about battle
+     */
     public function getCampaign($id)
     {
         $this->filter($id, 'id');
@@ -153,6 +162,11 @@ class MilitaryModule extends Module
         return $campaign;
     }
 
+    /**
+     * Returns "dynamic" statistics about given campaign
+     * @param  Campaign $campaign Campaign to find
+     * @return array             Statistics on given campaign
+     */
     public function getCampaignStats(Campaign $campaign)
     {
         $this->getClient()->checkLogin();
@@ -226,6 +240,11 @@ class MilitaryModule extends Module
         return $result;
     }
     
+    /**
+     * Returns information about Military Unit
+     * @param  int $id Military Unit ID
+     * @return array     Military Unit's information
+     */
     public function getUnit($id)
     {
         $this->filter($id, 'id');
@@ -304,6 +323,12 @@ class MilitaryModule extends Module
             md5($unitId).'_'.$size.'.jpg';
     }
     
+    /**
+     * Returns information about particular regiment
+     * @param  int    $unitId      ID of Military Unit
+     * @param  int    $regimentId  Absolute ID of regiment
+     * @return array               Information about regiment
+     */
     public function getRegiment($unitId, $regimentId)
     {
         $this->filter($unitId, 'id');
@@ -360,6 +385,11 @@ class MilitaryModule extends Module
         return $result;
     }
 
+    /**
+     * Makes single kill in particular campaign
+     * @param  int    $campaignId  Campaign ID
+     * @return array               Result information about effect
+     */
     public function fight($campaignId)
     {
         $this->filter($campaignId, 'id');
@@ -380,6 +410,14 @@ class MilitaryModule extends Module
         return $response;
     }
     
+    /**
+     * Chooses side in Resistance War
+     * @param  int $campaignId Campaign ID
+     * @param  int $side       One of the constants:
+     *                         MilitaryModule::SIDE_ATTACKER or
+     *                         MilitaryModule::SIDE_DEFENDER
+     * @return void
+     */
     public function chooseSide($campaignId, $side)
     {
         $this->filter($campaignId, 'id');
@@ -431,6 +469,10 @@ class MilitaryModule extends Module
         return isset($data['weaponId']) && $data['weaponId'] == $weaponQuality;
     }
 
+    /**
+     * Returns information about Daily Order completion status
+     * @return array Information about Daily Order completion status
+     */
     public function getDailyOrderStatus()
     {
         $this->getClient()->checkLogin();
@@ -448,6 +490,12 @@ class MilitaryModule extends Module
         return $result;
     }
 
+    /**
+     * Gets Daily Order reward if completed
+     * @param  int    $missionId  Mission ID (can be obtained via getDailyOrderStatus() method)
+     * @param  int    $unitId     Military Unit ID
+     * @return array              Result information
+     */
     public function getDailyOrderReward($missionId, $unitId)
     {
         $this->getClient()->checkLogin();
