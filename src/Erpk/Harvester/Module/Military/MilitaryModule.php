@@ -285,8 +285,8 @@ class MilitaryModule extends Module
         $avatar = $header->select('//img[@id="avatar"]/@src')->extract();
         preg_match('#[0-9]{4}/[0-9]{2}/[0-9]{2}#', $avatar, $created);
         
-        $details=$header->select('div[@class="header_content"]/div[@class="details"]');
-        $url=$details->select('a[2]/@href')->extract();
+        $details = $header->select('div[@class="header_content"]/div[@class="details"]');
+        $url = $details->select('a[2]/@href')->extract();
         
         $regs = array();
         $regiments = $content->select('//select[@id="regiments_lists"]/option/@value');
@@ -299,7 +299,7 @@ class MilitaryModule extends Module
             'id'         => $id,
             'name'       => $header->select('div[@class="header_content"]/h2/span')->extract(),
             'avatar'     => $avatar,
-            'created_at' => strtr($created[0], '/', '-'),
+            'created_at' => isset($created[0]) ? strtr($created[0], '/', '-') : null,
             'location'   => $country,
             'members'    => $members,
             'about'      => $header->select('//span[@id="editable_about"]')->extract(),
