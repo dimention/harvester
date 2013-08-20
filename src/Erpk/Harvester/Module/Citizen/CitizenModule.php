@@ -13,15 +13,21 @@ use Erpk\Common\EntityManager;
 
 class CitizenModule extends Module
 {
-    public function get($id)
+    /**
+     * Returns information on given citizen
+     * @param  int   $id  Citizen ID
+     * @return array      Citizen information
+     */
+    public function getProfile($id)
     {
         $id = Filter::id($id);
+
         $request = $this->getClient()->get('citizen/profile/'.$id);
         $request->getParams()->set('cookies.disable', true);
-        $request->citizenId = $id;
+
         try {
             $response = $request->send();
-            $result = self::parseProfile($id, $response->getBody(true));
+            $result = self::parseProfile($response->getBody(true));
             return $result;
         } catch (ClientErrorResponseException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
@@ -32,7 +38,12 @@ class CitizenModule extends Module
         }
     }
     
-    public static function parseProfile($id, $html)
+    /**
+     * Parses citizen's profile HTML page and returns useful information
+     * @param  string $html HTML content of citizen's profile page
+     * @return array        Information about citizen
+     */
+    public static function parseProfile($html)
     {
         $em = EntityManager::getInstance();
         $countries = $em->getRepository('Erpk\Common\Entity\Country');
@@ -57,7 +68,13 @@ class CitizenModule extends Module
         /**
          * BASIC DATA
          */
-        $result['id'] = $id;
+        $viewFriends = $content->select('//a[@class="view_friends"][1]/@href');
+        if ($viewFriends->hasResults()) {
+            preg_match('@^/[^/]+/main/citizen-friends/([0-9]+)$@', $viewFriends->extract(), $matches);
+            $result['id'] = (int)$matches[1];
+        } else {
+            throw new ScrapeException;
+        }
         
         $result['name'] = $content->select('//img[@class="citizen_avatar"]/@alt')->extract();
         $birth = new DateTime(trim($second->select('p[2]')->extract()));
@@ -230,7 +247,7 @@ class CitizenModule extends Module
             if (!$type->hasResults()) {
                 continue;
             }
-            $type=strtr(strtolower($type->extract()), array(' ' => '_'));
+            $type = strtr(strtolower($type->extract()), array(' ' => '_'));
             $count=$li->select('div[@class="counter"]');
             if ($count->hasResults()) {
                 $count = (int)$count->extract();
@@ -244,6 +261,12 @@ class CitizenModule extends Module
         return $result;
     }
     
+    /**
+     * Searches for matching citizen
+     * @param  string  $query Citizen name
+     * @param  integer $page  Page number
+     * @return array          List of matching citizens
+     */
     public function search($query, $page = 1)
     {
         $page = Filter::page($page);
