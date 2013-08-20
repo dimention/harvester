@@ -54,37 +54,43 @@ class MilitaryModule extends Module
     
     protected function parseBattleField($html)
     {
-        preg_match(
+        $count = preg_match(
             '/var SERVER_DATA\s*=\s*({[^;]*)/i',
             $html,
             $serverDataRaw
         );
-        
-        if (!preg_match('/battleId\s*:\s*([0-9]+)/i', $serverDataRaw[1], $id)) {
+
+        if ($count == 0) {
+            throw new ScrapeException;
+        }
+
+        $serverDataRaw = $serverDataRaw[1];
+
+        if (!preg_match('/battleId\s*:\s*([0-9]+)/i', $serverDataRaw, $id)) {
             throw new ScrapeException;
         } else {
             $id = (int)$id[1];
         }
         
-        if (!preg_match('/mustInvert\s*:\s*([a-z]+)/i', $serverDataRaw[1], $mustInvert)) {
+        if (!preg_match('/mustInvert\s*:\s*([a-z]+)/i', $serverDataRaw, $mustInvert)) {
             throw new ScrapeException;
         } else {
             $mustInvert = $mustInvert[1] == 'true';
         }
         
-        if (!preg_match('/invaderId\s*:\s*([0-9]+)/i', $serverDataRaw[1], $invaderId)) {
+        if (!preg_match('/invaderId\s*:\s*([0-9]+)/i', $serverDataRaw, $invaderId)) {
             throw new ScrapeException;
         } else {
             $invaderId = (int)$invaderId[1];
         }
         
-        if (!preg_match('/defenderId\s*:\s*([0-9]+)/i', $serverDataRaw[1], $defenderId)) {
+        if (!preg_match('/defenderId\s*:\s*([0-9]+)/i', $serverDataRaw, $defenderId)) {
             throw new ScrapeException;
         } else {
             $defenderId = (int)$defenderId[1];
         }
         
-        if (!preg_match('/isResistance\s*:\s*([0-9]+)/i', $serverDataRaw[1], $isResistance)) {
+        if (!preg_match('/isResistance\s*:\s*([0-9]+)/i', $serverDataRaw, $isResistance)) {
             throw new ScrapeException;
         } else {
             $isResistance = $isResistance[1] == 1;
@@ -129,7 +135,6 @@ class MilitaryModule extends Module
         if ($response->isRedirect() &&
             preg_match('#^'.$this->getClient()->getBaseUrl().'/wars/show/([0-9]+)$#', $response->getLocation())
         ) {
-            
             $war = $this->getClient()->get($response->getLocation())->send();
             preg_match(
                 '#'.$this->getClient()->getBaseUrl().'/military/battlefield-choose-side/[0-9]+/[0-9]+#',
@@ -176,8 +181,8 @@ class MilitaryModule extends Module
                 $sideId = $campaign->getDefender()->getId();
             }
             
-            $result[$side]['points'] =    (int)$stats['division'][$sideId]['total'];
-            $result[$side]['divisions']    = array();
+            $result[$side]['points']    = (int)$stats['division'][$sideId]['total'];
+            $result[$side]['divisions'] = array();
             
             for ($n = 1; $n <= 4; $n++) {
                 $tf = array();
