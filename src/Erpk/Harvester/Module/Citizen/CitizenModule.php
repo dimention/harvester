@@ -48,10 +48,10 @@ class CitizenModule extends Module
         $xs = Selector\XPath::loadHTML($html);
         $result = array();
         
-        $content = $xs->select('//div[@id="container"][1]/div[@id="content"][1]');
-        $sidebar = $content->select('//div[@class="citizen_sidebar"][1]');
-        $second = $content->select('//div[@class="citizen_second"]');
-        $state = $content->select('//div[@class="citizen_state"]');
+        $content  = $xs->select('//div[@id="container"][1]/div[@id="content"][1]');
+        $sidebar  = $content->select('//div[@class="citizen_sidebar"][1]');
+        $second   = $content->select('//div[@class="citizen_second"]');
+        $state    = $content->select('//div[@class="citizen_state"]');
         $military = $content->select('//div[@class="citizen_military"]');
         
         /**
@@ -73,7 +73,7 @@ class CitizenModule extends Module
          * BAN/DEAD
          */
         $ban = $state->select(
-            'div/span/img[@src="http://www.erepublik.com/images/modules/citizenprofile/perm_banned.png"]/../..'
+            'div/span/img[@src="http://s1.www.erepublik.net/images/modules/citizenprofile/perm_banned.png"]/../..'
         );
         if ($ban->hasResults()) {
             $result['ban'] = array(
@@ -84,7 +84,7 @@ class CitizenModule extends Module
             $result['ban'] = null;
         }
         $dead = $state->select(
-            'div/span/img[@src="http://www.erepublik.com/images/modules/citizenprofile/dead_citizen.png"]/../..'
+            'div/span/img[@src="http://s1.www.erepublik.net/images/modules/citizenprofile/dead_citizen.png"]/../..'
         );
         $result['alive'] = $dead->hasResults() === false;
         
@@ -111,7 +111,7 @@ class CitizenModule extends Module
         $info = $sidebar->select('div[1]');
         $result['residence'] = array(
             'country' => $countries->findOneByName($info->select('a[1]/@title')->extract()),
-            'region' => $regions->findOneByName($info->select('a[2]/@title')->extract()),
+            'region'  => $regions->findOneByName($info->select('a[2]/@title')->extract()),
         );
         $result['citizenship'] = $countries->findOneByName((string)$info->select('a[3]/img[1]/@title')->extract());
         
@@ -169,14 +169,14 @@ class CitizenModule extends Module
         }
         
         if ($newspaper->select('div[1]')->hasResults()) {
-            $url = $newspaper->select('div[1]/a[1]/@href')->extract();
-            $start = strrpos($url, '-')+1;
+            $url    = $newspaper->select('div[1]/a[1]/@href')->extract();
+            $start  = strrpos($url, '-')+1;
             $length = strrpos($url, '/')-$start;
             
             $result['newspaper'] = array(
-                'id'    =>  (int)substr($url, $start, $length),
-                'name'  =>  $newspaper->select('div[1]/a/@title')->extract(),
-                'role'  =>  trim($newspaper->select('h3[1]')->extract())
+                'id'   => (int)substr($url, $start, $length),
+                'name' => $newspaper->select('div[1]/a/@title')->extract(),
+                'role' => trim($newspaper->select('h3[1]')->extract())
             );
         } else {
             $result['newspaper'] = null;
@@ -194,7 +194,7 @@ class CitizenModule extends Module
             $stat = $topDamage->select('div[@class="stat"]/small')->extract();
             if (preg_match('/Achieved while .*? on day ([0-9,]+)/', $stat, $matches)) {
                 $dateTime = DateTime::createFromDay((int)str_replace(',', '', $matches[1]));
-                $result['top_damage']=array(
+                $result['top_damage'] = array(
                     'damage'  => $damage,
                     'date'    => $dateTime->format('Y-m-d'),
                     'message' => trim($stat, "\xC2\xA0\n")
@@ -203,7 +203,7 @@ class CitizenModule extends Module
                 throw new ScrapeException;
             }
         } else {
-            $result['top_damage']=null;
+            $result['top_damage'] = null;
         }
         
         $truePatriot = $citizenContent->select(
@@ -221,7 +221,7 @@ class CitizenModule extends Module
                 );
             }
         } else {
-            $result['true_patriot']=null;
+            $result['true_patriot'] = null;
         }
         
         $medals = $content->select('//ul[@id="achievment"]/li');
