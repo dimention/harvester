@@ -369,4 +369,42 @@ class ManagementModule extends Module
         $response = $request->send();
         return $response->getBody(true);
     }
+    
+    public function publishArticle($article_name, $article_body, $article_category)
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->post('/en/write-article');
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', $this->getClient()->getBaseUrl().'/en/write-article');
+		$request->addPostFields(
+            array(
+				'article_name' => $article_name,
+				'article_body' => $article_body,
+				'article_category' => $article_category,
+                '_token'  => $this->getSession()->getToken()
+            )
+		);
+        $response = $request->send();
+        return $response->getBody(true);
+    }
+    
+    public function editArticle($article_url, $article_name, $article_body, $article_category)
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->post('/en/edit-article/'.$article_url);
+        $request->getHeaders()
+            ->set('X-Requested-With', 'XMLHttpRequest')
+            ->set('Referer', $this->getClient()->getBaseUrl().'/en/edit-article/'.$article_url);
+		$request->addPostFields(
+            array(
+				'article_name' => $article_name,
+				'article_body' => $article_body,
+				'article_category' => $article_category,
+                '_token'  => $this->getSession()->getToken()
+            )
+		);
+        $response = $request->send();
+        return $response->getBody(true);
+    }
 }
