@@ -370,18 +370,18 @@ class ManagementModule extends Module
         return $response->getBody(true);
     }
     
-    public function publishArticle($article_name, $article_body, $article_category)
+    public function publishArticle($articleName, $articleBody, $articleCategory)
     {
         $this->getClient()->checkLogin();
-        $request = $this->getClient()->post('/en/write-article');
+        $request = $this->getClient()->post('write-article');
         $request->getHeaders()
             ->set('X-Requested-With', 'XMLHttpRequest')
-            ->set('Referer', $this->getClient()->getBaseUrl().'/en/write-article');
+            ->set('Referer', $this->getClient()->getBaseUrl().'write-article');
 		$request->addPostFields(
             array(
-				'article_name' => $article_name,
-				'article_body' => $article_body,
-				'article_category' => $article_category,
+				'article_name' => $articleName,
+				'article_body' => $articleBody,
+				'article_category' => $articleCategory,
                 '_token'  => $this->getSession()->getToken()
             )
 		);
@@ -389,18 +389,18 @@ class ManagementModule extends Module
         return $response->getBody(true);
     }
     
-    public function editArticle($article_url, $article_name, $article_body, $article_category)
+    public function editArticle($articleUrl, $articleName, $articleBody, $articleCategory)
     {
         $this->getClient()->checkLogin();
-        $request = $this->getClient()->post('/en/edit-article/'.$article_url);
+        $request = $this->getClient()->post('edit-article/'.$articleUrl);
         $request->getHeaders()
             ->set('X-Requested-With', 'XMLHttpRequest')
-            ->set('Referer', $this->getClient()->getBaseUrl().'/en/edit-article/'.$article_url);
+            ->set('Referer', $this->getClient()->getBaseUrl().'edit-article/'.$articleUrl);
 		$request->addPostFields(
             array(
-				'article_name' => $article_name,
-				'article_body' => $article_body,
-				'article_category' => $article_category,
+				'article_name' => $articleName,
+				'article_body' => $articleBody,
+				'article_category' => $articleCategory,
                 '_token'  => $this->getSession()->getToken()
             )
 		);
