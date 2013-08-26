@@ -1,7 +1,7 @@
 <?php
 namespace Erpk\Harvester\Client\Proxy;
 
-use Erpk\Harvester\Client;
+use Erpk\Harvester\Client\Client;
 
 class Http extends Proxy implements ProxyInterface
 {
