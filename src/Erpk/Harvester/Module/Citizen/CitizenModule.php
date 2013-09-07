@@ -28,6 +28,7 @@ class CitizenModule extends Module
         try {
             $response = $request->send();
             $result = self::parseProfile($response->getBody(true));
+            $result['id'] = $id;
             return $result;
         } catch (ClientErrorResponseException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
@@ -68,12 +69,11 @@ class CitizenModule extends Module
         /**
          * BASIC DATA
          */
+        $result['id'] = null;
         $viewFriends = $content->select('//a[@class="view_friends"][1]/@href');
         if ($viewFriends->hasResults()) {
             preg_match('@^/[^/]+/main/citizen-friends/([0-9]+)$@', $viewFriends->extract(), $matches);
             $result['id'] = (int)$matches[1];
-        } else {
-            throw new ScrapeException;
         }
         
         $result['name'] = $content->select('//img[@class="citizen_avatar"]/@alt')->extract();
@@ -90,7 +90,7 @@ class CitizenModule extends Module
          * BAN/DEAD
          */
         $ban = $state->select(
-            'div/span/img[@src="http://s1.www.erepublik.net/images/modules/citizenprofile/perm_banned.png"]/../..'
+            'div/span/img[contains(@src, "perm_banned")]/../..'
         );
         if ($ban->hasResults()) {
             $result['ban'] = array(
@@ -101,7 +101,7 @@ class CitizenModule extends Module
             $result['ban'] = null;
         }
         $dead = $state->select(
-            'div/span/img[@src="http://s1.www.erepublik.net/images/modules/citizenprofile/dead_citizen.png"]/../..'
+            'div/span/img[contains(@src, "dead_citizen")]/../..'
         );
         $result['alive'] = $dead->hasResults() === false;
         
