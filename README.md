@@ -65,7 +65,7 @@ use Erpk\Harvester\Module\Citizen\CitizenModule;
 $module = new CitizenModule($client);
 
 // Get citizen profile
-$citizen = $module->get(2020512);
+$citizen = $module->getProfile(2020512);
 echo $citizen['name']; // Romper
 
 // Search for citizens by name
