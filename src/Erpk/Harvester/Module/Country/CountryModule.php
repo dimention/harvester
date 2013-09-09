@@ -40,20 +40,22 @@ class CountryModule extends Module
             $value = $tr->select('td[3]/span')->extract();
             $result[$key] = (int)str_replace(',', '', $value);
         }
+
         if (preg_match('#Regions \(([0-9]+)\)#', $html, $regions)) {
             $result['region_count'] = (int)$regions[1];
         }
         
-        
         $regions = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Region');
         $result['regions'] = array();
         $table = $hxs->select('//table[@class="regions"]/tr[position()>1]');
-        foreach ($table as $tr) {
-            $region = $regions->findOneByName(trim($tr->select('td[1]//a[1]')->extract()));
-            if (!$region) {
-                throw new ScrapeException;
+        if ($table->hasResults()) {
+            foreach ($table as $tr) {
+                $region = $regions->findOneByName(trim($tr->select('td[1]//a[1]')->extract()));
+                if (!$region) {
+                    throw new ScrapeException;
+                }
+                $result['regions'][] = $region;
             }
-            $result['regions'][] = $region;
         }
         
         return $result;
@@ -149,17 +151,17 @@ class CountryModule extends Module
         
         /* SALARY */
         $salary = $economy->select('h2[text()="Salary" and @class="section"]/following-sibling::div[1]/table/tr');
-		foreach ($salary as $k => $tr) {
+        foreach ($salary as $k => $tr) {
             if ($tr->select('th')->hasResults()) {
                 continue;
             }
-			$i = $tr->select('td[position()>=1 and position()<=2]/span');
+            $i = $tr->select('td[position()>=1 and position()<=2]/span');
             if (count($i)!=2) {
                 throw new ScrapeException;
             }
-			$type = $i->item(0)->extract();
+            $type = $i->item(0)->extract();
             $result['salary'][$type] = (float)$i->item(1)->extract();
-		}
+        }
         
         /* EMBARGOES */
         $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
