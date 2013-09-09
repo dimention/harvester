@@ -1,6 +1,11 @@
 {
     "name": "erpk/harvester",
     "require": {
+        "php": ">=5.3.10",
+        "ext-pdo_sqlite": "*",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-dom": "*",
         "guzzle/guzzle": "3.4.*",
         "doctrine/orm": "2.3.*",
         "erpk/common": "0.3.*"
