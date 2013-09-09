@@ -177,6 +177,16 @@ $module->getInventory();
 $module->train(true, true, true, true);
 // Work as employee
 $module->workAsEmployee();
+
+//Work as manager
+use Erpk\Harvester\Module\Management\WorkQueue;
+$companies = $module->getCompanies();
+$queue = new WorkQueue;
+foreach ($companies as $company) {
+    $queue->add($company, true, 0); // Work in every company as Manager with 0 employees assigned
+}
+$module->workAsManager($queue);
+
 // Get rewards for daily tasks
 $module->getDailyTasksReward();
 // Send private message to citizen with ID 123456

@@ -122,7 +122,13 @@ class ManagementModule extends Module
         $response = $request->send();
         $html = $response->getBody(true);
         preg_match('#var companies\s+=\s+(.+);#', $html, $matches);
-        $result = json_decode($matches[1], true);
+        $companiesData = json_decode($matches[1], true);
+
+        $result = array();
+        foreach ($companiesData as $companyData) {
+            $result[] = new Company($companyData);
+        }
+        
         return $result;
     }
     
@@ -182,22 +188,42 @@ class ManagementModule extends Module
         return $response;
     }
 
-    public function workAsEmployee()
+    protected function work($postFields)
     {
         $this->getClient()->checkLogin();
         $request = $this->getClient()->post('economy/work');
         $request->getHeaders()
             ->set('X-Requested-With', 'XMLHttpRequest')
             ->set('Referer', $this->getClient()->getBaseUrl().'/economy/myCompanies');
-        $request->addPostFields(
+
+        $postFields = array_merge(
+            $postFields,
             array(
-                '_token'      => $this->getSession()->getToken(),
-                'action_type' => 'work'
+                '_token' => $this->getSession()->getToken()
             )
         );
 
+        $request->addPostFields($postFields);
+
         $response = $request->send()->json();
         return $response;
+    }
+
+    public function workAsEmployee()
+    {
+        return $this->work(
+            array('action_type' => 'work')
+        );
+    }
+
+    public function workAsManager(WorkQueue $queue)
+    {
+        return $this->work(
+            array(
+                'companies'   => $queue->toArray(),
+                'action_type' => 'production'
+            )
+        );
     }
     
     public function getDailyTasksReward()
