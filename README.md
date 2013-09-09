@@ -12,18 +12,19 @@ If your application isn't written in PHP, you may be looking for **standalone AP
 Installation
 ------------
 
-###Quick way
-[Download](http://dev.erpk.org/downloads) latest **.phar** (PHP Archive), decompress it and include in your code:
+###Quick method
+[Download](http://dev.erpk.org/downloads) latest **.tar.gz**, unpack it and add following line to your code:
 ```php
 <?php
-require __DIR__.'/harvester-latest-dev.phar';
+require 'harvester/vendor/autoload.php';
 ```
 
-###Recommended way
+###Recommended method
 Recommended way to install library is getting it through [Composer](http://getcomposer.org/).
-Create composer.json file in your application directory:
+Create `composer.json` file in your application directory:
 ```json
 {
+    "minimum-stability": "dev",
     "require": {
       "erpk/harvester": "*"
     }
@@ -34,7 +35,9 @@ Then download latest [composer.phar](http://getcomposer.org/composer.phar) and r
 ```
 php composer.phar install
 ```
-That command will install Harvester along with all its dependencies. Now, in order to use libraries, you have to include autoloader, which is located in `vendor/autoload.php`.
+That command will install Harvester along with all its dependencies.
+Now, in order to use libraries, you have to include autoloader, which is located in `vendor/autoload.php`.
+
 ```php
 <?php
 require __DIR__.'/vendor/autoload.php';
