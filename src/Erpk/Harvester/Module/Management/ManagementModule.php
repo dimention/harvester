@@ -122,14 +122,17 @@ class ManagementModule extends Module
         $response = $request->send();
         $html = $response->getBody(true);
         preg_match('#var companies\s+=\s+(.+);#', $html, $matches);
-        $companiesData = json_decode($matches[1], true);
 
-        $result = array();
-        foreach ($companiesData as $companyData) {
-            $result[] = new Company($companyData);
+        $companies = json_decode($matches[1], true);
+        if (!is_array($companies)) {
+            throw new ScrapeException;
         }
         
-        return $result;
+        foreach ($companies as $n => $company) {
+            $companies[$n] = new Company($company);
+        }
+
+        return new CompanyCollection($companies);
     }
     
     public function getTrainingGrounds()

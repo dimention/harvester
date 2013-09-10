@@ -7,13 +7,11 @@ class WorkQueue
 
     public function add(Company $company, $ownWork = true, $employeeWorks = 0)
     {
-        if (!$company->hasAlreadyWorked()) {
-            $this->queue[] = array(
-                'id' => $company->getId(),
-                'employee_works' => $employeeWorks,
-                'own_work' => $ownWork ? 1 : 0
-            );
-        }
+        $this->queue[] = array(
+            'id' => $company->getId(),
+            'employee_works' => $employeeWorks,
+            'own_work' => $ownWork ? 1 : 0
+        );
     }
 
     public function toArray()

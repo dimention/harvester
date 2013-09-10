@@ -10,23 +10,32 @@ class Company
         $this->data = $data;
     }
 
+    public function get($key)
+    {
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        } else {
+            return null;
+        }
+    }
+
     public function getId()
     {
-        return $this->data['id'];
+        return $this->get('id');
     }
 
     public function isRaw()
     {
-        return $this->data['is_raw'];
+        return $this->get('is_raw');
     }
 
     public function getQuality()
     {
-        return $this->data['quality'];
+        return $this->get('quality');
     }
 
     public function hasAlreadyWorked()
     {
-        return $this->data['already_worked'];
+        return $this->get('already_worked');
     }
 }

@@ -181,12 +181,29 @@ $module->train(true, true, true, true);
 // Work as employee
 $module->workAsEmployee();
 
-//Work as manager
+// Get owned companies
+use Erpk\Harvester\Module\Management\Company;
+
+$companies = $module->getCompanies(); // Returns CompanyCollection object
+$companies->filter(function (Company $company) {
+    // Filter out all companies where you've already worked as Manager
+    // and which are not raw companies
+    return $company->hasAlreadyWorked() === false
+        && $company->isRaw() === true; 
+});
+
+foreach ($companies as $company) { // Iterate filtered Companies
+    echo $company->getId(); // Display company ID
+}
+
+$companies->reset(); // Resets previously added filters
+
+// Work as manager
 use Erpk\Harvester\Module\Management\WorkQueue;
-$companies = $module->getCompanies();
+
 $queue = new WorkQueue;
-foreach ($companies as $company) {
-    $queue->add($company, true, 0); // Work in every company as Manager with 0 employees assigned
+foreach ($companies as $company) { // Iterate previously filtered CompanyCollection
+    $queue->add($company, true, 0); // Work in company as Manager without employees assigned
 }
 $module->workAsManager($queue);
 
