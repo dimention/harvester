@@ -14,52 +14,58 @@ class ExchangeModule extends Module
     
     public function scan($mode, $page = 1)
     {
-        if ($mode !== self::CURRENCY && $mode !== self::GOLD) {
+        if ($mode === self::CURRENCY) {
+            $currencyId = 1;
+        } else if ($mode === self::GOLD) {
+            $currencyId = 62;
+        } else {
             throw new InvalidArgumentException('Invalid currency');
         }
+
         $page = Filter::page($page);
         $this->getClient()->checkLogin();
         $request = $this->getClient()->post('economy/exchange/retrieve/');
         $request->addPostFields(
             array(
                 '_token'         => $this->getSession()->getToken(),
-                'currencyId'     => $mode ? 62 : 1,
+                'currencyId'     => $currencyId,
                 'page'           => $page-1,
                 'personalOffers' => 0,
             )
         );
         
         $response = $request->send();
-        $result = json_decode($response->getBody(true), true);
-        return $this->parseOffers($result['buy_mode'], $page);
+        return $this->parseOffers($response->json());
     }
     
     
-    public static function parseOffers($html, $requestedPage)
+    public static function parseOffers($data)
     {
-        $result = array();
-        if (strpos($html, 'No offers to display') !== false) {
-            return $result;
-        }
-        
-        $hxs = Selector\XPath::loadHTML($html);
+        $hxs = Selector\XPath::loadHTML($data['buy_mode']);
         $paginator = new Selector\Paginator($hxs);
-        if ($paginator->isOutOfRange($requestedPage)) {
-            return array();
-        }
+
+        $result = new OfferCollection;
+        $result->setPaginator($paginator);
+        $result->setGoldAmount((float)$data['gold']['value']);
+        $result->setCurrencyAmount((float)$data['ecash']['value']);
         
         $rows = $hxs->select('//*[@class="exchange_offers"]/tr');
-        
-        foreach ($rows as $row) {
-            $url = $row->select('td[1]/a/@href')->extract();
-            $offer = new Offer;
-            $offer->id = (int)substr($row->select('td[3]/strong[2]/@id')->extract(), 14);
-            $offer->amount = (float)str_replace(',', '', $row->select('td[2]/strong/span')->extract());
-            $offer->rate = (float)$row->select('td[3]/strong[2]/span')->extract();
-            $offer->sellerId = (int)substr($url, strripos($url, '/') + 1);
-            $offer->sellerName = (string)$row->select('td[1]/a/@title')->extract();
-            $result[] = $offer;
+        if ($rows->hasResults()) {
+            $offers = array();
+            foreach ($rows as $row) {
+                $url = $row->select('td[1]/a/@href')->extract();
+                $offer = new Offer;
+                $offer->id = (int)substr($row->select('td[3]/strong[2]/@id')->extract(), 14);
+                $offer->amount = (float)str_replace(',', '', $row->select('td[2]/strong/span')->extract());
+                $offer->rate = (float)$row->select('td[3]/strong[2]/span')->extract();
+                $offer->sellerId = (int)substr($url, strripos($url, '/') + 1);
+                $offer->sellerName = (string)$row->select('td[1]/a/@title')->extract();
+                $offers[] = $offer;
+            }
+
+            $result->setOffers($offers);
         }
+        
         return $result;
     }
     

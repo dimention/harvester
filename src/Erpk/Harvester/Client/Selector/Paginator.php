@@ -3,8 +3,8 @@ namespace Erpk\Harvester\Client\Selector;
 
 class Paginator
 {
-    protected $currentPage;
-    protected $lastPage;
+    protected $currentPage = null;
+    protected $lastPage = null;
     
     protected function extractPage($str)
     {
@@ -15,12 +15,14 @@ class Paginator
     {
         $pager = $hxs->select('//ul[@class="pager"][1]');
         
-        $last = $pager->select('//a[@class="last"][1]/@rel');
-        $current = $pager->select('//a[@class="on"][1]/@rel');
-        $lastSelectable = $pager->select('//li/a[position()=last()][1]');
-        
-        $this->currentPage = $current->hasResults() ? $this->extractPage($current) : null;
-        $this->lastPage = $this->extractPage($last->hasResults() ? $last : $lastSelectable);
+        if ($pager->hasResults()) {
+            $last = $pager->select('//a[@class="last"][1]/@rel');
+            $current = $pager->select('//a[@class="on"][1]/@rel');
+            $lastSelectable = $pager->select('//li/a[position()=last()][1]');
+            
+            $this->currentPage = $current->hasResults() ? $this->extractPage($current) : null;
+            $this->lastPage = $this->extractPage($last->hasResults() ? $last : $lastSelectable);
+        }
     }
     
     public function getFirstPage()
