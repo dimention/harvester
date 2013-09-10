@@ -113,8 +113,18 @@ $module = new ExchangeModule($client);
 
 // Offers for buy currency, page 1
 $offers = $module->scan(ExchangeModule::CURRENCY, 1);
-// Offers for buy gold, page 1
-$offers = $module->scan(ExchangeModule::GOLD, 1);
+// Offers for buy gold, page 20
+$offers = $module->scan(ExchangeModule::GOLD, 20);
+
+// Access current gold and currency amounts
+$gold = $offers->getGoldAmount();
+$cc = $offers->getCurrencyAmount();
+
+// Get paginator
+$paginator = $offers->getPaginator();
+echo $paginator->getCurrentPage(); // Display current page number
+echo $paginator->getLastPage(); // Display last page number
+
 // Buy offer
 $response = $module->buy($offerId, $amountToBuy);
 ```

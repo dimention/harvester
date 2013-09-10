@@ -51,7 +51,6 @@ class ExchangeModule extends Module
         
         $rows = $hxs->select('//*[@class="exchange_offers"]/tr');
         if ($rows->hasResults()) {
-            $offers = array();
             foreach ($rows as $row) {
                 $url = $row->select('td[1]/a/@href')->extract();
                 $offer = new Offer;
@@ -60,10 +59,8 @@ class ExchangeModule extends Module
                 $offer->rate = (float)$row->select('td[3]/strong[2]/span')->extract();
                 $offer->sellerId = (int)substr($url, strripos($url, '/') + 1);
                 $offer->sellerName = (string)$row->select('td[1]/a/@title')->extract();
-                $offers[] = $offer;
+                $result[] = $offer;
             }
-
-            $result->setOffers($offers);
         }
         
         return $result;

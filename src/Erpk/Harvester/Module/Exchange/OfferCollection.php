@@ -1,31 +1,13 @@
 <?php
 namespace Erpk\Harvester\Module\Exchange;
 
-use Countable;
-use IteratorAggregate;
-use ArrayIterator;
+use ArrayObject;
 
-class OfferCollection implements Countable, IteratorAggregate
+class OfferCollection extends ArrayObject
 {
     protected $paginator;
     protected $goldAmount;
     protected $currencyAmount;
-    protected $data = array();
-
-    public function count()
-    {
-        return count($this->data);
-    }
-
-    public function getIterator()
-    {
-        return new ArrayIterator($this->data);
-    }
-
-    public function setOffers($offers)
-    {
-        $this->data = $offers;
-    }
 
     public function setPaginator($paginator)
     {
