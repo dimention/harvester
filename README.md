@@ -58,6 +58,30 @@ $client->setEmail('your_erepublik@email.com');
 $client->setPassword('your_erepublik_password');
 ```
 
+Proxy
+-----
+Sometimes you need use Harvester with proxy. Here is easy solution to do that.
+```php
+use Erpk\Harvester\Client\Proxy\HttpProxy;
+// Create new HttpProxy object
+$proxy = new HttpProxy('59.47.43.90', 8080);
+// Make client using that proxy
+$client->setProxy($proxy);
+
+// You can also use NetworkInterfaceProxy
+use Erpk\Harvester\Client\Proxy\NetworkInterfaceProxy;
+$interfaceProxy = new NetworkInterfaceProxy('venet0');
+$client->setProxy($proxy);
+
+// How to remove proxy?
+$client->removeProxy();
+
+// You need to check if Client already has proxy?
+if ($client->hasProxy()) {
+    echo "I'm using proxy.";
+}
+```
+
 Modules
 -------
 Following examples assume you have already set up your Client and included autoloader.

@@ -3,7 +3,7 @@ namespace Erpk\Harvester\Client\Proxy;
 
 use Erpk\Harvester\Client\Client;
 
-class Http extends Proxy implements ProxyInterface
+class HttpProxy implements ProxyInterface
 {
     public $hostname;
     public $port;
@@ -16,8 +16,6 @@ class Http extends Proxy implements ProxyInterface
         $this->port = $port;
         $this->username = $user;
         $this->password = $pass;
-        
-        $this->id = md5(implode(':', func_get_args()));
     }
     
     public function apply(Client $client)

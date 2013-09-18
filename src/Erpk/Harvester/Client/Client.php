@@ -4,7 +4,7 @@ namespace Erpk\Harvester\Client;
 use Erpk\Harvester\Exception;
 use Erpk\Harvester\Filter;
 use Erpk\Harvester\Client\Plugin\Maintenance\MaintenancePlugin;
-use Erpk\Harvester\Client\Proxy\Proxy;
+use Erpk\Harvester\Client\Proxy\ProxyInterface;
 use Guzzle\Plugin\Cookie\CookiePlugin;
 use Guzzle\Http\Client as GuzzleClient;
 
@@ -83,7 +83,7 @@ class Client extends GuzzleClient
     
     public function hasProxy()
     {
-        return $this->proxy instanceof Proxy;
+        return $this->proxy instanceof ProxyInterface;
     }
     
     public function getProxy()
@@ -91,7 +91,7 @@ class Client extends GuzzleClient
         return $this->proxy;
     }
     
-    public function setProxy(Proxy $proxy)
+    public function setProxy(ProxyInterface $proxy)
     {
         if ($this->hasProxy()) {
             $this->proxy->remove($this);

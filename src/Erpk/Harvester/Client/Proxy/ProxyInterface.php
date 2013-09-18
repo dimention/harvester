@@ -5,6 +5,6 @@ use Erpk\Harvester\Client\Client;
 
 interface ProxyInterface
 {
-    public function getId();
     public function apply(Client $client);
+    public function remove(Client $client);
 }
