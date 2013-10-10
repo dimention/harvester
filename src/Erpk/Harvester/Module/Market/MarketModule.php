@@ -69,12 +69,11 @@ class MarketModule extends Module
         }
         
         $hxs = Selector\XPath::loadHTML($html);
-        $paginator = new Selector\Paginator($hxs);
-        if ($paginator->isOutOfRange($page)) {
+        $rows = $hxs->select('//*[@class="price_sorted"]/tr');
+        if (!$rows->hasResults()) {
             return array();
         }
-        
-        $rows = $hxs->select('//*[@class="price_sorted"]/tr');
+
         foreach ($rows as $row) {
             $id         = $row->select('td/@id')->extract();
             $id         = substr($id, strripos($id, '_') + 1);
