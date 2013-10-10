@@ -38,7 +38,7 @@ class Client extends GuzzleClient
             ->set('Accept-Language', 'en-US,en;q=0.8');
         $this->getEventDispatcher()->addSubscriber(new MaintenancePlugin);
 
-        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36');
+        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.66 Safari/537.36');
     }
     
     public function setEmail($email)
@@ -120,7 +120,7 @@ class Client extends GuzzleClient
             )
         );
         
-        $login->setHeader('Referer', 'http://www.erepublik.com/en');
+        $login->setHeader('Referer', $this->getBaseUrl());
         $login = $login->send();
         
         if ($login->isRedirect()) {
