@@ -25,13 +25,13 @@ class JobMarketModule extends Module
     public static function parseOffers($html, $requestedPage)
     {
         $hxs = Selector\XPath::loadHTML($html);
-        $paginator = new Selector\Paginator($hxs);
-        if ($paginator->isOutOfRange($requestedPage)) {
-            return array();
-        }
-        
+
         $rows = $hxs->select('//*[@class="salary_sorted"]/tr');
         $offers = array();
+        if (!$rows->hasResults()) {
+            return $offers;
+        }
+        
         foreach ($rows as $row) {
             
             $url = $row->select('td/a/@href')->extract();
