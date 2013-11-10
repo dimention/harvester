@@ -31,27 +31,39 @@ class PressModule extends Module
         $response = $request->send();
 
         if ($response->isRedirect()) {
-            return $response->getLocation();
+            return Article::createFromUrl(
+                $response->getLocation()
+            );
         } else {
             throw new ScrapeException;
         }
     }
     
-    public function editArticle($articleUrl, $articleName, $articleBody, $articleCategory)
+    public function editArticle(Article $article, $articleName, $articleBody, $articleCategory)
     {
         $this->getClient()->checkLogin();
-        $request = $this->getClient()->post('edit-article/'.$articleUrl);
-        $request->getHeaders()
-            ->set('Referer', $this->getClient()->getBaseUrl().'/edit-article/'.$articleUrl);
+        $request = $this->getClient()->post('edit-article/'.$article->getId());
+        $request
+            ->getHeaders()
+            ->set('Referer', $this->getClient()->getBaseUrl().'/edit-article/'.$article->getId());
+
         $request->addPostFields(
             array(
+                'commit' => 'Edit',
                 'article_name' => $articleName,
                 'article_body' => $articleBody,
                 'article_category' => $articleCategory,
-                '_token'  => $this->getSession()->getToken()
+                '_token' => $this->getSession()->getToken()
             )
         );
         $response = $request->send();
         return $response->getBody(true);
+    }
+
+    public function deleteArticle(Article $article)
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->get('delete-article/'.$article->getId().'/1');
+        $request->send();
     }
 }

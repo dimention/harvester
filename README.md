@@ -250,3 +250,33 @@ $module->sendMessage(
     'Content of message'
 );
 ```
+
+###Media
+```php
+use Erpk\Harvester\Module\Media\PressModule;
+$module = new PressModule($client);
+
+// Create new article
+$article = $press->publishArticle(
+    'Test article',
+    'Article body',
+    PressModule::CATEGORY_FIRST_STEPS
+);
+
+// Edit existing article
+$press->editArticle(
+    $article,
+    'Test article 2',
+    'Another body',
+    PressModule::CATEGORY_BATTLE_ORDERS
+);
+
+// Remove article
+$press->deleteArticle($article);
+
+// Don't you have an Article object instance? Create new one from URL
+$article = Article::createFromUrl('http://www.erepublik.com/en/article/test-article-123456/1/20');
+
+// Access ID of article
+echo $article->getId(); // outputs "test-article-123456"
+```
