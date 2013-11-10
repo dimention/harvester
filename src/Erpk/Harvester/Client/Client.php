@@ -146,10 +146,29 @@ class Client extends GuzzleClient
     
     protected function parseSessionData($hxs)
     {
+        $token = null;
+
+        $tokenInput = $hxs->select('//*[@id="_token"][1]/@value');
+        if (!$tokenInput->hasResults()) {
+            $scripts = $hxs->select('//script[@type="text/javascript"]');
+            $tokenPattern = '@csrfToken\s*:\s*\'([a-z0-9]+)\'@';
+            foreach ($scripts as $script) {
+                if (preg_match($tokenPattern, $script->extract(), $matches)) {
+                    $token = $matches[1];
+                    break;
+                }
+            }
+        } else {
+            $token = $tokenInput->extract();
+        }
+
+        if ($token === null) {
+            throw new ScrapeException('CSRF token not found');
+        }
+
         $userAvatar = $hxs->select('//a[@class="user_avatar"][1]');
-        $token = $hxs->select('//*[@id="_token"][1]/@value')->extract();
-        $id    = (int)strtr($userAvatar->select('@href')->extract(), array('/en/citizen/profile/' => ''));
-        $name  = $userAvatar->select('@title')->extract();
+        $id   = (int)strtr($userAvatar->select('@href')->extract(), array('/en/citizen/profile/' => ''));
+        $name = $userAvatar->select('@title')->extract();
         
         $this
             ->getSession()
