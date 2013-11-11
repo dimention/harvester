@@ -183,4 +183,30 @@ class CountryModule extends Module
         }
         return $result;
     }
+
+    public function getOnlineCitizens(Entity\Country $country, $page = 1)
+    {
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->get(
+            'main/online-users/'.$country->getEncodedName().'/all/'.$page
+        );
+        $response = $request->send();
+        $html = $response->getBody(true);
+        $hxs = Selector\XPath::loadHTML($html);
+
+        $result = array();
+        $citizens = $hxs->select('//div[@class="citizen"]');
+        if ($citizens->hasResults()) {
+            foreach ($citizens as $citizen) {
+                $url = $citizen->select('div[@class="nameholder"]/a[1]/@href')->extract();
+                $result[] = array(
+                    'id'   => (int)substr($url, strrpos($url, '/')+1),
+                    'name' => trim($citizen->select('div[@class="nameholder"]/a[1]')->extract()),
+                    'avatar' => $citizen->select('div[@class="avatarholder"]/a[1]/img[1]/@src')->extract()
+                );
+            }
+            
+        }
+        return $result;
+    }
 }

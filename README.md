@@ -192,13 +192,20 @@ $response = $module->buy($offers[0], 15);
 use Erpk\Harvester\Module\Country\CountryModule;
 $module = new CountryModule($client);
 
-// Get Poland's society information
+// Get Country entity instance
 use Erpk\Common\EntityManager;
 $em = EntityManager::getInstance();
 $countries = $em->getRepository('Erpk\Common\Entity\Country');
 $poland = $countries->findOneByCode('PL');
 
+// Get country's society data
 $society = $module->getSociety($poland);
+
+// Get country's economic data
+$eco = $module->getEconomy($poland);
+
+// Get list of online citizens (page 3)
+$onlineCitizens = $module->getOnlineCitizens($poland, 3);
 ```
 
 ###Management
