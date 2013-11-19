@@ -163,7 +163,7 @@ class Client extends GuzzleClient
         }
 
         if ($token === null) {
-            throw new ScrapeException('CSRF token not found');
+            throw new Exception\ScrapeException('CSRF token not found');
         }
 
         $userAvatar = $hxs->select('//a[@class="user_avatar"][1]');
