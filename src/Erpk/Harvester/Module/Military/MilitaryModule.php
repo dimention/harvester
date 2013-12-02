@@ -58,7 +58,7 @@ class MilitaryModule extends Module
     
     protected function parseBattleField($html)
     {
-        $count = preg_match(
+        $count = preg_match_all(
             '/var SERVER_DATA\s*=\s*({[^;]*)/i',
             $html,
             $serverDataRaw
@@ -68,7 +68,7 @@ class MilitaryModule extends Module
             throw new ScrapeException;
         }
 
-        $serverDataRaw = $serverDataRaw[1];
+        $serverDataRaw = $serverDataRaw[1][$count-1];
 
         if (!preg_match('/battleId\s*:\s*([0-9]+)/i', $serverDataRaw, $id)) {
             throw new ScrapeException;
