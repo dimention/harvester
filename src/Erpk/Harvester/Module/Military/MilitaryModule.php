@@ -81,6 +81,12 @@ class MilitaryModule extends Module
         } else {
             $mustInvert = $mustInvert[1] == 'true';
         }
+
+        if (!preg_match('/countryId\s*:\s*([0-9]+)/i', $serverDataRaw, $countryId)) {
+            throw new ScrapeException;
+        } else {
+            $countryId = (int)$countryId[1];
+        }
         
         if (!preg_match('/invaderId\s*:\s*([0-9]+)/i', $serverDataRaw, $invaderId)) {
             throw new ScrapeException;
@@ -113,6 +119,7 @@ class MilitaryModule extends Module
         $campaign->setDefender($countries->find($mustInvert ? $invaderId : $defenderId));
         $campaign->setRegion($region);
         $campaign->setResistance($isResistance);
+        $campaign->_citizenCountry = $countries->find($countryId);
         
         return $campaign;
     }
@@ -387,53 +394,40 @@ class MilitaryModule extends Module
 
     /**
      * Makes single kill in particular campaign
-     * @param  int    $campaignId  Campaign ID
-     * @return array               Result information about effect
+     * @param  Campaign  $campaign  Campaign entity
+     * @param  int  $side        One of the constants:
+     *                               MilitaryModule::SIDE_ATTACKER or
+     *                               MilitaryModule::SIDE_DEFENDER or
+     *                               null when to choose automatically
+     * @return array             Result information about effect
      */
-    public function fight($campaignId)
+    public function fight(Campaign $campaign, $side = null)
     {
-        $this->filter($campaignId, 'id');
         $this->getClient()->checkLogin();
 
-        $request = $this->getClient()->post('military/fight-shooot/'.$campaignId);
+        $request = $this->getClient()->post('military/fight-shooot/'.$campaign->getId());
         $request->getHeaders()
             ->set('X-Requested-With', 'XMLHttpRequest')
-            ->set('Referer', $this->getClient()->getBaseUrl().'/military/battlefield/'.$campaignId);
+            ->set('Referer', $this->getClient()->getBaseUrl().'/military/battlefield/'.$campaign->getId());
+
+        if ($side === self::SIDE_ATTACKER) {
+            $country = $campaign->getAttacker();
+        } else if ($side === self::SIDE_DEFENDER) {
+            $country = $campaign->getDefender();
+        } else {
+            $country = $campaign->_citizenCountry;
+        }
+
         $request->addPostFields(
             array(
                 '_token'   => $this->getSession()->getToken(),
-                'battleId' => $campaignId
+                'battleId' => $campaign->getId(),
+                'sideId'   => $country->getId()
             )
         );
 
         $response = $request->send()->json();
         return $response;
-    }
-    
-    /**
-     * Chooses side in Resistance War
-     * @param  int $campaignId Campaign ID
-     * @param  int $side       One of the constants:
-     *                         MilitaryModule::SIDE_ATTACKER or
-     *                         MilitaryModule::SIDE_DEFENDER
-     * @return void
-     */
-    public function chooseSide($campaignId, $side)
-    {
-        $this->filter($campaignId, 'id');
-        $this->getClient()->checkLogin();
-
-        $campaign = $this->getCampaign($campaignId);
-        if ($campaign->isResistance()) {
-            if ($side === self::SIDE_ATTACKER) {
-                $country = $campaign->getAttacker();
-            } else {
-                $country = $campaign->getDefender();
-            }
-
-            $request = $this->getClient()->get('military/battlefield-choose-side/'.$campaignId.'/'.$country->getId());
-            $request->send();
-        }
     }
 
     /**
