@@ -163,6 +163,7 @@ class CitizenModule extends Module
                 $result['party'] = array(
                     'id'    =>  (int)substr($url, $start, $length),
                     'name'  =>  $party->select('div/img/@alt')->extract(),
+                    'avatar'=>  Selector\Filter::normalizeAvatar($party->select('div/img/@src')->extract()),
                     'role'  =>  trim($party->select('h3[1]')->extract())
                 );
             }
@@ -193,6 +194,7 @@ class CitizenModule extends Module
             $result['newspaper'] = array(
                 'id'   => (int)substr($url, $start, $length),
                 'name' => $newspaper->select('div[1]/a/@title')->extract(),
+                'avatar'=>  Selector\Filter::normalizeAvatar($newspaper->select('div[1]/a[1]/img[1]/@src')->extract()),
                 'role' => trim($newspaper->select('h3[1]')->extract())
             );
         } else {
