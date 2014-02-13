@@ -124,6 +124,19 @@ class CitizenModule extends Module
             0,
             $result['elite_citizen']
         );
+
+        $result['military']['mass_destruction'] = [
+            'small_bombs' => 0,
+            'big_bombs'   => 0,
+        ];
+
+        $massDestruction = $content->select('//div[@class="citizen_mass_destruction"][1]');
+        if ($massDestruction->hasResults()) {
+            $result['military']['mass_destruction'] = [
+                'small_bombs' => (int)$massDestruction->select('strong/img[@title="Small Bombs used"]/../b[1]')->extract(),
+                'big_bombs' => (int)$massDestruction->select('strong/img[@title="Big Bombs used"]/../b[1]')->extract(),
+            ];
+        }
         
         $info = $sidebar->select('div[1]');
         $result['residence'] = array(
