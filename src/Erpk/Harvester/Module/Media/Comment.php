@@ -1,5 +1,5 @@
 <?php
-namespace Erpk\Harvester\Module\Market;
+namespace Erpk\Harvester\Module\Media;
 
 
 class Comment
