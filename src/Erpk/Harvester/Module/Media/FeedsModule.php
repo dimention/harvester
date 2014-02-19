@@ -290,10 +290,27 @@ class FeedsModule extends Module
     	return $this->parsePostsFeed($this->getPostsFeed($wallId, $page, $groupId, 0));
     }
     
-    public function getPostById($postId, $wallId = self::WALL_FRIENDS, $page = 0, $groupId = 0)
+    /**
+     * Get a shout by Id
+     * @param  integer $postId   Shout ID
+     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $page     Page Number start from 0 which is default
+     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
+     * @return array             An array contains 10 posts sorted by time
+     */
+    public function getPostById($postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
-    	
-    	return $this->parsePostsFeed($this->getClient()->get('?viewPost='.$postId))[0];
+    	$this->getClient()->checkLogin();
+    	 
+    	$request = $this->getClient()->get();
+    	switch ($wallId) {
+    		case self::WALL_FRIENDS: $request->getQuery()->set('viewPost', $postId);
+    		case self::WALL_PARTY: $request->getQuery()->set('viewPartyPost', $postId);
+    		case self::WALL_MU: $request->getQuery()->set('unitPost', $postId);
+    	}
+    	$request->getQuery()->set('viewPost', $postId);
+    	$html = $request->send()->getBody(true);
+    	return $this->parsePostsFeed($html)[0];
     }
     
     /**
