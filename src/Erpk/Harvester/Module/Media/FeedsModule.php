@@ -4,6 +4,7 @@ namespace Erpk\Harvester\Module\Media;
 use Erpk\Harvester\Exception\InvalidArgumentException;
 use Erpk\Harvester\Module\Module;
 use Erpk\Harvester\Client\Selector;
+use Erpk\Harvester\Filter;
 use Erpk\Harvester\Module\Media\Post;
 use Erpk\Harvester\Module\Media\Comment;
 
@@ -225,9 +226,9 @@ class FeedsModule extends Module
     		$profileId = $postItem->select('a/@href')->extract();
     		$profileId = substr($profileId, strripos($profileId, '/profile/') + 10);
     		$profileName = $postItem->select('div[@class="post_content"]/h6/a')->extract();
-    		$reportRef = $postItem->select('div[@class="post_content"]/div[@class="second_actions"]/a[@class="report"]/@href')->extract();
+    		$reportRef = $postItem->select('//a[@class="report"]/@href')->extract();
     		$time = $postItem->select('div[@class="post_content"]/h6/em')->extract();
-    		$message = $postItem->select('div[@class="post_content"]/p/text()')->extract();
+    		$message = $postItem->select('div[@class="post_content"]/p')->extract();
     		    	
     		$post = new Post;
     		$post->postId = (int)$postId;
@@ -258,9 +259,9 @@ class FeedsModule extends Module
     		$profileId = $commentItem->select('div[@class="post_reply"]/p/strong/a/@href')->extract();
     		$profileId = substr($profileId, strripos($profileId, '/profile/') + 10);
     		$profileName = $commentItem->select('div[@class="post_reply"]/p/strong/a/@title')->extract();
-    		$reportRef = $commentItem->select('div[@class="second_actions_comments"]/a[@class="report"]/@href')->extract();
+    		$reportRef = $commentItem->select('//a[@class="report"]/@href')->extract();
     		$time = $commentItem->select('div[@class="post_reply"]/b/text()')->extract();
-    		$message = $commentItem->select('div[@class="post_reply"]/p/text()')->extract();
+    		$message = $commentItem->select('div[@class="post_reply"]/p')->extract();
     			
     		$comment = new Comment;
     		$comment->postId = (int)$postId;
@@ -289,12 +290,18 @@ class FeedsModule extends Module
     	return $this->parsePostsFeed($this->getPostsFeed($wallId, $page, $groupId, 0));
     }
     
+    public function getPostById($postId, $wallId = self::WALL_FRIENDS, $page = 0, $groupId = 0)
+    {
+    	
+    	return $this->parsePostsFeed($this->getClient()->get('?viewPost='.$postId))[0];
+    }
+    
     /**
      * Get all comments of a shout by ID
      * @param  string  $postId   Shout ID
      * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
      * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             An array contains 10 posts sorted by time
+     * @return array             An array contains comments
      */    
     public function getComments($postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
