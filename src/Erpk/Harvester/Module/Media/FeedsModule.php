@@ -314,7 +314,6 @@ class FeedsModule extends Module
     			$request->getQuery()->set('unitPost', $postId);
     			break;
     	}
-    	$request->getQuery()->set('viewPost', $postId);
     	$html = $request->send()->getBody(true);
     	return $this->parsePostsFeed($html)[0];
     }
