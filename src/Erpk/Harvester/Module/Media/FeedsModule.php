@@ -302,11 +302,17 @@ class FeedsModule extends Module
     {
     	$this->getClient()->checkLogin();
     	 
-    	$request = $this->getClient()->get();
+        $request = $this->getClient()->get();
     	switch ($wallId) {
-    		case self::WALL_FRIENDS: $request->getQuery()->set('viewPost', $postId);
-    		case self::WALL_PARTY: $request->getQuery()->set('viewPartyPost', $postId);
-    		case self::WALL_MU: $request->getQuery()->set('unitPost', $postId);
+    		case self::WALL_FRIENDS: 
+    			$request->getQuery()->set('viewPost', $postId);
+    			break;
+    		case self::WALL_PARTY: 
+    			$request->getQuery()->set('viewPartyPost', $postId);
+    			break;
+    		case self::WALL_MU: 
+    			$request->getQuery()->set('unitPost', $postId);
+    			break;
     	}
     	$request->getQuery()->set('viewPost', $postId);
     	$html = $request->send()->getBody(true);
