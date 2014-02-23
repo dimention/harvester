@@ -4,9 +4,6 @@ namespace Erpk\Harvester\Module\Media;
 use Erpk\Harvester\Exception\InvalidArgumentException;
 use Erpk\Harvester\Module\Module;
 use Erpk\Harvester\Client\Selector;
-use Erpk\Harvester\Filter;
-use Erpk\Harvester\Module\Media\Post;
-use Erpk\Harvester\Module\Media\Comment;
 
 class FeedsModule extends Module
 {
@@ -25,7 +22,7 @@ class FeedsModule extends Module
     const COMMENT_VOTE = 7;
     // $likeStatus values
     const UNLIKE = 0;
-    const LIKE = 1;    
+    const LIKE = 1;
 
     protected static function getFeedUrl($wallID, $action)
     {
@@ -61,20 +58,21 @@ class FeedsModule extends Module
                     ''  //vote comment
                     )
         );
+
         return $url[$wallID][$action];
     }
-    
+
     /**
      * Posts new shout
-     * @param  string  $message  Content of message
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $groupId  Military Unit ID in case which wall is WALL_MU
-     * @return array             Server result
+     * @param  string  $message Content of message
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $groupId Military Unit ID in case which wall is WALL_MU
+     * @return array   Server result
      */
     public function createShout($message, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
         $this->getClient()->checkLogin();
-        $url = self::getFeedUrl($wallId, self::POST_CREATE); 
+        $url = self::getFeedUrl($wallId, self::POST_CREATE);
         $request = $this->getClient()->post($url);
         $request->getHeaders()
         ->set('X-Requested-With', 'XMLHttpRequest')
@@ -87,16 +85,17 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
 
     /**
      * Posts new comment
-     * @param  integer $postId   Shout ID
-     * @param  string  $message  Content of message
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             Server result
+     * @param  integer $postId  Shout ID
+     * @param  string  $message Content of message
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $groupId Military Unit ID in the case which wall is WALL_MU
+     * @return array   Server result
      */
     public function createComment($postId, $message, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
@@ -115,20 +114,21 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
 
     /**
      * Deletes a post by ID
-     * @param  integer $postId   Shout ID
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             Server result
+     * @param  integer $postId  Shout ID
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $groupId Military Unit ID in the case which wall is WALL_MU
+     * @return array   Server result
      */
     public function deleteShout($postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
         $this->getClient()->checkLogin();
-        $url = self::getFeedUrl($wallId, self::POST_DELETE); 
+        $url = self::getFeedUrl($wallId, self::POST_DELETE);
         $request = $this->getClient()->post($url);
         $request->getHeaders()
         ->set('X-Requested-With', 'XMLHttpRequest')
@@ -141,21 +141,22 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
-    
+
     /**
      * Deletes a comment by ID
-     * @param  integer $commentId  Comment ID
-     * @param  integer $postId     Shout ID
-     * @param  string  $wallId     Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $groupId    Military Unit ID in the case which wall is WALL_MU
-     * @return array               Server result
-     */    
+     * @param  integer $commentId Comment ID
+     * @param  integer $postId    Shout ID
+     * @param  string  $wallId    Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $groupId   Military Unit ID in the case which wall is WALL_MU
+     * @return array   Server result
+     */
     public function deleteComment($commentId, $postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
         $this->getClient()->checkLogin();
-        $url = self::getFeedUrl($wallId, self::COMMENT_DELETE); 
+        $url = self::getFeedUrl($wallId, self::COMMENT_DELETE);
         $request = $this->getClient()->post($url);
         $request->getHeaders()
         ->set('X-Requested-With', 'XMLHttpRequest')
@@ -169,13 +170,14 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
-    
+
     public function getPostsFeed($wallId = self::WALL_FRIENDS, $page = 0, $groupId = 0, $postId = 0)
     {
         $this->getClient()->checkLogin();
-        $url = self::getFeedUrl($wallId, self::POST_RETRIEVE); 
+        $url = self::getFeedUrl($wallId, self::POST_RETRIEVE);
         $request = $this->getClient()->post($url);
         $request->getHeaders()
         ->set('X-Requested-With', 'XMLHttpRequest')
@@ -189,8 +191,9 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send();
+
         return $response->getBody(true);
-    }    
+    }
 
     public function getCommentsFeed($wallId = self::WALL_FRIENDS, $postId = 0, $groupId = 0)
     {
@@ -208,6 +211,7 @@ class FeedsModule extends Module
         )
         );
         $response = $request->send();
+
         return $response->getBody(true);
     }
 
@@ -219,7 +223,7 @@ class FeedsModule extends Module
         if (!$postsItems->hasResults()) {
             return array();
         }
-        
+
         foreach ($postsItems as $postItem) {
             $postId = $postItem->select('@id')->extract();
             $postId = substr($postId, strripos($postId, '_') + 1);
@@ -229,30 +233,31 @@ class FeedsModule extends Module
             $reportRef = $postItem->select('//a[@class="report"]/@href')->extract();
             $time = $postItem->select('div[@class="post_content"]/h6/em')->extract();
             $message = $postItem->select('div[@class="post_content"]/p')->extract();
-                    
+            $message = str_replace(PHP_EOL, '<br />', $message);
+
             $post = new Post;
-            $post->postId = (int)$postId;
-            $post->profileId = (int)$profileId;
+            $post->postId = (int) $postId;
+            $post->profileId = (int) $profileId;
             $post->profileName = $profileName;
             $post->reportRef = $reportRef;
             $post->time = trim(substr($time, strpos($time, ' ')+1));
             $post->message = trim($message);
-            
+
             $posts[] = $post;
         }
-        
+
         return $posts;
     }
-    
+
     protected function parseCommentsFeed($html, $postId)
     {
         $hxs = Selector\XPath::loadHTML($html);
         $commentItems = $hxs->select('//li');
-        
+
         if (!$commentItems->hasResults()) {
             return array();
         }
-         
+
         foreach ($commentItems as $commentItem) {
             $commentId = $commentItem->select('@id')->extract();
             $commentId = substr($postId, strripos($postId, '_') + 1);
@@ -262,69 +267,71 @@ class FeedsModule extends Module
             $reportRef = $commentItem->select('//a[@class="report"]/@href')->extract();
             $time = $commentItem->select('div[@class="post_reply"]/b/text()')->extract();
             $message = $commentItem->select('div[@class="post_reply"]/p')->extract();
-                
+            $message = str_replace(PHP_EOL, '<br />', $message);
+
             $comment = new Comment;
-            $comment->postId = (int)$postId;
-            $comment->commentId = (int)$commentId;
-            $comment->profileId = (int)$profileId;
+            $comment->postId = (int) $postId;
+            $comment->commentId = (int) $commentId;
+            $comment->profileId = (int) $profileId;
             $comment->profileName = $profileName;
             $comment->reportRef = $reportRef;
             $comment->time = $time;
             $comment->message = trim($message);
-        
+
             $comments[] = $comment;
         }
-         
-        return $comments;        
+
+        return $comments;
     }
-    
+
     /**
      * Get 10 shouts which is paginated
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $page     Page Number start from 0 which is default
-     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             An array contains 10 posts sorted by time
-     */    
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $page    Page Number start from 0 which is default
+     * @param  integer $groupId Military Unit ID in the case which wall is WALL_MU
+     * @return array   An array contains 10 posts sorted by time
+     */
     public function getPosts($wallId = self::WALL_FRIENDS, $page = 0, $groupId = 0)
     {
         return $this->parsePostsFeed($this->getPostsFeed($wallId, $page, $groupId, 0));
     }
-    
+
     /**
      * Get a shout by Id
-     * @param  integer $postId   Shout ID
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $page     Page Number start from 0 which is default
-     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             An array contains 10 posts sorted by time
+     * @param  integer $postId  Shout ID
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $page    Page Number start from 0 which is default
+     * @param  integer $groupId Military Unit ID in the case which wall is WALL_MU
+     * @return array   An array contains 10 posts sorted by time
      */
     public function getPostById($postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
         $this->getClient()->checkLogin();
-         
+
         $request = $this->getClient()->get();
         switch ($wallId) {
-            case self::WALL_FRIENDS: 
+            case self::WALL_FRIENDS:
                 $request->getQuery()->set('viewPost', $postId);
                 break;
-            case self::WALL_PARTY: 
+            case self::WALL_PARTY:
                 $request->getQuery()->set('viewPartyPost', $postId);
                 break;
-            case self::WALL_MU: 
+            case self::WALL_MU:
                 $request->getQuery()->set('unitPost', $postId);
                 break;
         }
         $html = $request->send()->getBody(true);
+
         return $this->parsePostsFeed($html)[0];
     }
-    
+
     /**
      * Get all comments of a shout by ID
-     * @param  string  $postId   Shout ID
-     * @param  string  $wallId   Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @param  integer $groupId  Military Unit ID in the case which wall is WALL_MU
-     * @return array             An array contains comments
-     */    
+     * @param  string  $postId  Shout ID
+     * @param  string  $wallId  Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @param  integer $groupId Military Unit ID in the case which wall is WALL_MU
+     * @return array   An array contains comments
+     */
     public function getComments($postId, $wallId = self::WALL_FRIENDS, $groupId = 0)
     {
         $response = json_decode($this->getCommentsFeed($wallId, $postId, $groupId), true);
@@ -337,17 +344,17 @@ class FeedsModule extends Module
 
     /**
      * Votes a shout by ID
-     * @param  integer $postId      Shout ID
-     * @param  integer $likeStatus  determines vote(1 or FeedsModule::LIKE is default) or unvote (0 or FeedsModule::UNLIKE)
-     * @param  string  $wallId      Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @return array                Server result
-     */    
+     * @param  integer $postId     Shout ID
+     * @param  integer $likeStatus determines vote(1 or FeedsModule::LIKE is default) or unvote (0 or FeedsModule::UNLIKE)
+     * @param  string  $wallId     Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @return array   Server result
+     */
     public function voteShout($postId, $likeStatus, $wallId = self::WALL_FRIENDS)
     {
         if ($wallId == self::WALL_MU) {
             throw new InvalidArgumentException('Military Unit\'s wall does not support votes.');
         }
-        
+
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_VOTE);
         $request = $this->getClient()->post($url);
@@ -362,23 +369,24 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
-    
+
     /**
      * Votes a shout by ID
-     * @param  integer $commentId   Comment ID
-     * @param  integer $postId      Shout ID
-     * @param  integer $likeStatus  determines vote (1 or FeedsModule::LIKE is default) or unvote (0 or FeedsModule::UNLIKE)
-     * @param  string  $wallId      Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
-     * @return array                Server result
-     */  
+     * @param  integer $commentId  Comment ID
+     * @param  integer $postId     Shout ID
+     * @param  integer $likeStatus determines vote (1 or FeedsModule::LIKE is default) or unvote (0 or FeedsModule::UNLIKE)
+     * @param  string  $wallId     Wall to post (FeedsModule::WALL_FRIENDS is default, FeedsModule::WALL_PARTY, FeedsModule::WALL_MU)
+     * @return array   Server result
+     */
     public function voteComment($commentId, $postId, $likeStatus = self::LIKE, $wallId = self::WALL_FRIENDS)
     {
         if ($wallId == self::WALL_MU) {
             throw new InvalidArgumentException('Military Unit\'s wall does not support votes.');
         }
-         
+
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_VOTE);
         $request = $this->getClient()->post($url);
@@ -394,6 +402,7 @@ class FeedsModule extends Module
                 )
         );
         $response = $request->send()->json();
+
         return $response;
     }
 }
