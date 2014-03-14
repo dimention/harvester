@@ -125,6 +125,20 @@ class CitizenModule extends Module
             $result['elite_citizen']
         );
 
+        $guerrilla = function () use ($content) {
+            $div = $content->select('//div[@class="guerilla_fights_history"][1]');
+            if ($div->hasResults()) {
+                return [
+                    'won' => (int)$div->select('div[@title="Guerrilla matches won"][1]/span[1]')->extract(),
+                    'lost' => (int)$div->select('div[@title="Guerrilla matches lost"][1]/span[1]')->extract(),
+                ];
+            } else {
+                return ['won' => null, 'lost' => null];
+            }
+        };
+
+        $result['military']['guerrilla'] = $guerrilla();
+
         $result['military']['mass_destruction'] = [
             'small_bombs' => 0,
             'big_bombs'   => 0,
