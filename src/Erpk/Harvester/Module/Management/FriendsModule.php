@@ -3,6 +3,8 @@ namespace Erpk\Harvester\Module\Management;
 
 use Erpk\Harvester\Client\Selector;
 use Erpk\Harvester\Filter;
+use Guzzle\Http\Exception\CurlException;
+use Guzzle\Http\Exception\ClientErrorResponseException;
 use Erpk\Harvester\Module\Module;
 use Erpk\Common\Entity;
 
@@ -311,6 +313,81 @@ class FriendsModule extends Module
             return true;
         }
 
+    }
+
+    public function listFriendsbyPage($citizenId, $page)
+    {
+        $citizenId = Filter::id($citizenId);
+        $this->getClient()->checkLogin();
+        $request = $this->getClient()->get('main/citizen-friends/'.$citizenId.'/'.$page.'/list');
+
+        $errtime = 0;
+        $notloaded = true;
+        while ($notloaded && $errtime < 5) {
+            try {
+                $response = $request->send();
+                $html = $response->json()['content'];
+                $notloaded = false;
+            } catch (CurlException $e) {
+                $errtime++;
+            } catch (ClientErrorResponseException $e) {
+                return array();
+            }
+        }
+
+        $hxs = Selector\XPath::loadHTML($html);
+        $friendsListItems = $hxs->select('//tr');
+
+        if (!$friendsListItems->hasResults()) {
+            return array();
+        }
+
+        foreach ($friendsListItems as $friendItem) {
+            $link = $friendItem->select('td[@class="friend_info"]/a/@href')->extract();
+            $citizenId = substr($link, strripos($link, '/') + 1);
+            $citizenName = $friendItem->select('td[@class="friend_info"]/a/@title')->extract();
+            $isDead = false;
+            if ($friendItem->select('@class')->hasResults()) {
+                $isDead = trim($friendItem->select('@class')->extract()) == 'dead';
+            }
+            $avatarUrl = $friendItem->select('td[@class="friend_info"]/a/img/@src')->extract();
+            if ($friendItem->select('td[@class="actions"]')->hasResults()) {
+                $removeUrl = $friendItem->select('td[@class="actions"]/div/a[@class="act remove"]/@href')->extract();
+            }
+
+            $friend = array();
+            $friend['citizenId'] = (int) $citizenId;
+            $friend['citizenName'] = $citizenName;
+            $friend['isDead'] = (boolean) $isDead;
+//    		$friend['link'] = $link;
+            $friend['avatarUrl'] = $avatarUrl;
+            if (isset($removeUrl)) {
+                $friend['removeUrl'] = $removeUrl;
+            }
+
+            $friends[] = $friend;
+        }
+
+        return $friends;
+    }
+
+    public function iterateFriends($citizenId, $callback)
+    {
+        $friends = array();
+
+        $i = 1;
+        do {
+            $page = $this->listFriendsbyPage($citizenId, $i);
+
+            $notendpage = !empty($page);
+ //           $friends = array_merge($friends, $page);
+            foreach ($page as $friend) {
+            	$callback($friend);
+            }
+            $i++;
+        } while ($notendpage);
+
+        return $friends;
     }
 
     public function addFriend($citizenId)
