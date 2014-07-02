@@ -11,15 +11,14 @@ class Offer
     
     public function toArray()
     {
-        return [
+        return array(
             'id'       =>  $this->id,
             'amount'   =>  $this->amount,
             'rate'     =>  $this->rate,
-            'seller'   =>  [
+            'seller'   =>  array(
                 'id'     =>  $this->sellerId,
                 'name'   =>  $this->sellerName
-            ]
-        ];
+            )
+        );
     }
 }
-

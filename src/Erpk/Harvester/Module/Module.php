@@ -2,25 +2,21 @@
 namespace Erpk\Harvester\Module;
 
 use Erpk\Common\EntityManager;
-use Erpk\Harvester\Filter;
 use Erpk\Harvester\Client\Client;
-use Erpk\Harvester\Client\bwClient;
+use Erpk\Harvester\Filter;
 
 abstract class Module
 {
     protected $client;
     
-    public function __construct($client)
+    public function __construct(Client $client)
     {
         $this->client = $client;
-        if (is_callable([$this, 'init'])) {
+        if (is_callable(array($this, 'init'))) {
             $this->init();
         }
     }
-
-    /**
-     * @return Client|bwClient
-     */
+    
     public function getClient()
     {
         return $this->client;

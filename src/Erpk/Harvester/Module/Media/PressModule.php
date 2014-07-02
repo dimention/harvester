@@ -1,9 +1,8 @@
 <?php
 namespace Erpk\Harvester\Module\Media;
 
-use Erpk\Harvester\Exception;
+use Erpk\Harvester\Exception\ScrapeException;
 use Erpk\Harvester\Module\Module;
-use Erpk\Harvester\Client\Selector;
 
 class PressModule extends Module
 {
@@ -17,77 +16,78 @@ class PressModule extends Module
     public function publishArticle($articleName, $articleBody, $articleCategory)
     {
         $this->getClient()->checkLogin();
-        $options = [
-            'query'   => [
-                'article_name'     => $articleName,
-                'article_body'     => $articleBody,
-                'article_category' => $articleCategory,
-                '_token'           => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'Referer' => $this->getClient()->getBaseUrl() . '/en/write-article'
-            ]
-        ];
+        $request = $this->getClient()->post('write-article');
 
-        $response = $this->getClient()->post('en/write-article', $options);
-        $status = $response->getStatusCode();
-        if ($status >= 300 && $status < 400) {
+        $request->getHeaders()
+            ->set('Referer', $this->getClient()->getBaseUrl().'/write-article');
+        $request->addPostFields(
+            array(
+                'article_name' => $articleName,
+                'article_body' => $articleBody,
+                'article_category' => $articleCategory,
+                '_token'  => $this->getSession()->getToken()
+            )
+        );
+        $response = $request->send();
+
+        if ($response->isRedirect()) {
             return Article::createFromUrl(
-                $response->getHeader('Location', true)
+                $response->getLocation()
             );
         } else {
-            throw new Exception\ScrapeException;
+            throw new ScrapeException;
         }
     }
     
     public function editArticle(Article $article, $articleName, $articleBody, $articleCategory)
     {
         $this->getClient()->checkLogin();
+        $request = $this->getClient()->post('edit-article/'.$article->getId());
+        $request
+            ->getHeaders()
+            ->set('Referer', $this->getClient()->getBaseUrl().'/edit-article/'.$article->getId());
 
-        $options = [
-            'query'   => [
-                'commit'           => 'Edit',
-                'article_name'     => $articleName,
-                'article_body'     => $articleBody,
+        $request->addPostFields(
+            array(
+                'commit' => 'Edit',
+                'article_name' => $articleName,
+                'article_body' => $articleBody,
                 'article_category' => $articleCategory,
-                '_token'           => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'Referer' => $this->getClient()->getBaseUrl() . '/en/edit-article/' . $article->getId()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/edit-article/' . $article->getId(), $options);
+                '_token' => $this->getSession()->getToken()
+            )
+        );
+        $response = $request->send();
         return $response->getBody(true);
     }
 
     public function deleteArticle(Article $article)
     {
         $this->getClient()->checkLogin();
-        $this->getClient()->get('en/delete-article/'.$article->getId().'/1');
+        $request = $this->getClient()->get('delete-article/'.$article->getId().'/1');
+        $request->send();
     }
+}
 
     public function getNewspaper($id)
     {
         $id = Filter::id($id);
         $this->getClient()->checkLogin();
 
-        $response = $this->getClient()->get('en/newspaper/'.$id);
+        $response = $this->getClient()->get('newspaper/'.$id)->send();
 
-        $status = $response->getStatusCode();
-        if ($status >= 300 && $status < 400) {
-            $location = 'http://www.erepublik.com'. $response->getHeader('Location', true);
+        if ($response->isRedirect()) {
+            $location = 'http://www.erepublik.com'.$response->getLocation();
             if (strpos($location, 'http://www.erepublik.com/en/newspaper/') !== false) {
-                $response = $this->getClient()->get($location);
+                $response = $this->getClient()->get($location)->send();
             } else {
-                throw new Exception\NotFoundException('Newspaper does not exist.');
+                throw new NotFoundException('Newspaper does not exist.');
             }
         } else {
-            throw new Exception\ScrapeException;
+            throw new ScrapeException;
         }
        
         $xs = Selector\XPath::loadHTML($response->getBody(true));
-        $result = [];
+        $result = array();
 
         $info      = $xs->select('//div[@class="newspaper_head"]');
         $avatar    = $info->select('//img[@class="avatar"]/@src')->extract();

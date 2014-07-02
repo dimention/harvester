@@ -26,9 +26,9 @@ class FeedsModule extends Module
 
     protected static function getFeedUrl($wallID, $action)
     {
-        $url = [
+        $url = array(
             // Friend's wall
-            self::WALL_FRIENDS => [  'main/wall-post/create/', // new post
+            self::WALL_FRIENDS => array(  'main/wall-post/create/', // new post
                     'main/wall-post/delete/', // delete post
                     'main/wall-post/older/', // retrieve posts
                     'main/wall-post/vote/', // vote post
@@ -36,9 +36,9 @@ class FeedsModule extends Module
                     'main/wall-comment/delete/', // delete comment
                     'main/wall-comment/retrieve/', // retrieve comments
                     'main/wall-comment/vote/'  //vote comment
-                    ],
+                    ),
             // Party wall
-            self::WALL_PARTY => [  'main/party-post/create/', // new post
+            self::WALL_PARTY => array(  'main/party-post/create/', // new post
                     'main/party-post/delete/', // delete post
                     'main/party-post/older/', // retrieve posts
                     'main/party-post/vote/', // vote post
@@ -46,9 +46,9 @@ class FeedsModule extends Module
                     'main/party-comment/delete/', // delete comment
                     'main/party-comment/retrieve/', // retrieve comments
                     'main/party-comment/vote/'  //vote comment
-                    ],
+                    ),
             // Military unit wall
-            self::WALL_MU => [  'main/group-wall/create/post', // new post
+            self::WALL_MU => array(  'main/group-wall/create/post', // new post
                     'main/group-wall/delete/post', // delete post
                     'main/group-wall/older/retrieve', // retrieve posts
                     '', // vote post
@@ -56,8 +56,8 @@ class FeedsModule extends Module
                     'main/group-wall/delete/comment', // delete comment
                     'main/group-wall/retrieve/comment', // retrieve comments
                     ''  //vote comment
-                    ]
-        ];
+                    )
+        );
 
         return $url[$wallID][$action];
     }
@@ -73,19 +73,18 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_CREATE);
-        $options = [
-            'query'   => [
-                'post_message' => $message,
-                'groupId'      => $groupId,
-                '_token'       => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'post_message' => $message,
+                        'groupId' => $groupId,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }
@@ -102,20 +101,19 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::COMMENT_CREATE);
-        $options = [
-            'query'   => [
-                'comment_message' => $message,
-                'postId'          => $postId,
-                'groupId'         => $groupId,
-                '_token'          => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'comment_message' => $message,
+                        'postId' => $postId,
+                        'groupId' => $groupId,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }
@@ -131,19 +129,18 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_DELETE);
-        $options = [
-            'query'   => [
-                'postId'  => $postId,
-                'groupId' => $groupId,
-                '_token'  => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'postId' => $postId,
+                        'groupId' => $groupId,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }
@@ -160,20 +157,19 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::COMMENT_DELETE);
-        $options = [
-            'query'   => [
-                'commentId' => $commentId,
-                'postId'    => $postId,
-                'groupId'   => $groupId,
-                '_token'    => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'commentId' => $commentId,
+                        'postId' => $postId,
+                        'groupId' => $groupId,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }
@@ -182,20 +178,19 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_RETRIEVE);
-        $options = [
-            'query'   => [
-                'groupId' => $groupId,
-                'page'    => $page,
-                'view'    => $postId,
-                '_token'  => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options);
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'groupId' => $groupId,
+                        'page' => $page,
+                        'view' => $postId,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send();
 
         return $response->getBody(true);
     }
@@ -204,19 +199,18 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::COMMENT_RETRIEVE);
-        $options = [
-            'query'   => [
-                'postId'  => $postId,
-                '_token'  => $this->getSession()->getToken(),
-                'groupId' => $groupId
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options);
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'postId' => $postId,
+                        '_token'  => $this->getSession()->getToken(),
+                        'groupId' => $groupId
+        )
+        );
+        $response = $request->send();
 
         return $response->getBody(true);
     }
@@ -227,7 +221,7 @@ class FeedsModule extends Module
         $postsItems = $hxs->select('//li[@class="wall_post"]');
 
         if (!$postsItems->hasResults()) {
-            return [];
+            return array();
         }
 
         foreach ($postsItems as $postItem) {
@@ -261,7 +255,7 @@ class FeedsModule extends Module
         $commentItems = $hxs->select('//li');
 
         if (!$commentItems->hasResults()) {
-            return [];
+            return array();
         }
 
         foreach ($commentItems as $commentItem) {
@@ -314,19 +308,19 @@ class FeedsModule extends Module
     {
         $this->getClient()->checkLogin();
 
+        $request = $this->getClient()->get();
         switch ($wallId) {
             case self::WALL_FRIENDS:
-                $query = ['viewPost' => $postId];
+                $request->getQuery()->set('viewPost', $postId);
                 break;
             case self::WALL_PARTY:
-                $query = ['viewPartyPost' => $postId];
+                $request->getQuery()->set('viewPartyPost', $postId);
                 break;
             case self::WALL_MU:
-                $query = ['unitPost' => $postId];
+                $request->getQuery()->set('unitPost', $postId);
                 break;
         }
-        $options = ['query' => $query];
-        $html = $this->getClient()->get('en', $options)->getBody(true);
+        $html = $request->send()->getBody(true);
 
         return $this->parsePostsFeed($html)[0];
     }
@@ -363,19 +357,18 @@ class FeedsModule extends Module
 
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_VOTE);
-        $options = [
-            'query'   => [
-                'postId'     => $postId,
-                'likeStatus' => $likeStatus,
-                '_token'     => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'postId' => $postId,
+                        'likeStatus' => $likeStatus,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }
@@ -396,20 +389,19 @@ class FeedsModule extends Module
 
         $this->getClient()->checkLogin();
         $url = self::getFeedUrl($wallId, self::POST_VOTE);
-        $options = [
-            'query'   => [
-                'postId'     => $postId,
-                'commentId'  => $commentId,
-                'likeStatus' => $likeStatus,
-                '_token'     => $this->getSession()->getToken()
-            ],
-            'headers' => [
-                'X-Requested-With' => 'XMLHttpRequest',
-                'Referer'          => $this->getClient()->getBaseUrl()
-            ]
-        ];
-
-        $response = $this->getClient()->post('en/'.$url, $options)->json();
+        $request = $this->getClient()->post($url);
+        $request->getHeaders()
+        ->set('X-Requested-With', 'XMLHttpRequest')
+        ->set('Referer', $this->getClient()->getBaseUrl());
+        $request->addPostFields(
+                array(
+                        'postId' => $postId,
+                        'commentId' => $commentId,
+                        'likeStatus' => $likeStatus,
+                        '_token'  => $this->getSession()->getToken()
+                )
+        );
+        $response = $request->send()->json();
 
         return $response;
     }

@@ -15,13 +15,14 @@ class JobMarketModule extends Module
         $page = Filter::page($page);
         $this->getClient()->checkLogin();
         
-        $url      = 'en/economy/job-market/'.$country->getId().'/'.$page;
-        $response = $this->getClient()->get($url);
+        $url      = 'economy/job-market/'.$country->getId().'/'.$page;
+        $request  = $this->getClient()->get($url);
+        $response = $request->send();
         
-        return $this->parseOffers($response->getBody(true));
+        return $this->parseOffers($response->getBody(true), $page);
     }
     
-    public static function parseOffers($html)
+    public static function parseOffers($html, $requestedPage)
     {
         $hxs = Selector\XPath::loadHTML($html);
 

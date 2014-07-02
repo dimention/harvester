@@ -1,16 +1,17 @@
 <?php
 namespace Erpk\Harvester\Client;
 
-use GuzzleHttp\Cookie\FileCookieJar;
+use Guzzle\Plugin\Cookie\Cookie;
+use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
 
 class Session
 {
     protected $savePath;
     protected $authTimeout = 480;
-    protected $cookieJar;
     protected $data = array(
         'touch'         =>  null,
         'token'         =>  null,
+        'cookieJar'     =>  null,
         'citizen.id'    =>  null,
         'citizen.name'  =>  null
     );
@@ -18,13 +19,37 @@ class Session
     public function __construct($savePath)
     {
         $this->savePath=$savePath;
-        $this->cookieJar = new FileCookieJar($this->savePath);
+        $cookieJar = new ArrayCookieJar();
+        
+        if (file_exists($savePath)) {
+            $this->data = unserialize(file_get_contents($savePath));
+            $cookieJar->unserialize($this->data['cookieJar']);
+        }
+        
+        $this->data['cookieJar'] = $cookieJar;
+    }
+    
+    protected function serializeCookieJar()
+    {
+        return json_encode(
+            array_map(
+                function (Cookie $cookie) {
+                    return $cookie->toArray();
+                },
+                $this->getCookieJar()->all()
+            )
+        );
     }
     
     public function save()
     {
         $copy = $this->data;
-        $this->cookieJar->Save($this->savePath);
+        $copy['cookieJar'] = $this->serializeCookieJar();
+        
+        file_put_contents(
+            $this->savePath,
+            serialize($copy)
+        );
     }
     
     public function __destruct()
@@ -39,7 +64,7 @@ class Session
     
     public function getCookieJar()
     {
-        return $this->cookieJar;
+        return $this->data['cookieJar'];
     }
     
     public function getCitizenName()

@@ -6,7 +6,6 @@ use Erpk\Harvester\Exception\ScrapeException;
 use Erpk\Harvester\Exception\InvalidArgumentException;
 use Erpk\Harvester\Client\Selector;
 use Erpk\Harvester\Filter;
-use GuzzleHttp\Event\CompleteEvent;
 
 class ExchangeModule extends Module
 {
@@ -25,63 +24,18 @@ class ExchangeModule extends Module
 
         $page = Filter::page($page);
         $this->getClient()->checkLogin();
-        $options = [
-            'query' => [
+        $request = $this->getClient()->post('economy/exchange/retrieve/');
+        $request->addPostFields(
+            array(
                 '_token'         => $this->getSession()->getToken(),
                 'currencyId'     => $currencyId,
                 'page'           => $page-1,
                 'personalOffers' => 0,
-            ]
-        ];
+            )
+        );
         
-        $response = $this->getClient()->post('en/economy/exchange/retrieve/', $options);
+        $response = $request->send();
         return $this->parseOffers($response->json());
-    }
-
-    public function scanAll($mode, $parallel = 1)
-    {
-        if ($mode === self::CURRENCY) {
-            $currencyId = 1;
-        } else if ($mode === self::GOLD) {
-            $currencyId = 62;
-        } else {
-            throw new InvalidArgumentException('Invalid currency');
-        }
-
-        $first = $this->scan($mode, 1);
-        $last = $first->getPaginator()->getLastPage();
-
-        $query = [
-                '_token'         => $this->getSession()->getToken(),
-                'currencyId'     => $currencyId,
-                'personalOffers' => 0,
-        ];
-
-        $requests = [];
-        $results  = [];
-        for($i=2; $i<=$last; $i++){
-            $q = $query;
-            $q['page'] = $i - 1;
-            $options = ['query' => $q];
-            $requests[] = $this->getClient()->createRequest('POST', 'en/economy/exchange/retrieve/', $options);
-        }
-
-        $parse = function (CompleteEvent $event) use (&$results) {
-            $response = $event->getResponse();
-            $offers   = ExchangeModule::parseOffers($response->json());
-            $page = $offers->getPaginator()->getCurrentPage();
-            foreach($offers as $offer){
-                $offer->page = $page;
-                $results[] = $offer;
-            }
-        };
-
-        $this->getClient()->sendAll($requests, [
-            'complete' => $parse,
-            'parallel' => $parallel
-        ]);
-
-        return $results;
     }
     
     
@@ -121,19 +75,17 @@ class ExchangeModule extends Module
         }
         
         $this->getClient()->checkLogin();
-        $options = [
-            'query' => [
+        $request = $this->getClient()->post('economy/exchange/purchase/');
+        $request->addPostFields(
+            array(
                 'offerId' => $id,
                 'amount'  => $amount,
                 '_token'  => $this->getSession()->getToken(),
                 'page'    => 0
-            ],
-            'headers' => [
-                'Referer' => $this->getClient()->getBaseUrl().'en/economy/exchange-market/'
-            ]
-        ];
-
-        $response = $this->getClient()->post('economy/exchange/purchase/', $options);
+            )
+        );
+        $request->setHeader('Referer', $this->getClient()->getBaseUrl().'/economy/exchange-market/');
+        $response = $request->send();
         return json_decode($response->getBody(true), true);
     }
 }
