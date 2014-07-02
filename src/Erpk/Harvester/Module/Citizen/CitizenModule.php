@@ -2,7 +2,7 @@
 namespace Erpk\Harvester\Module\Citizen;
 
 use Erpk\Harvester\Module\Module;
-use Guzzle\Http\Exception\ClientErrorResponseException;
+use GuzzleHttp\Exception\ClientException;
 use Erpk\Harvester\Exception\ScrapeException;
 use Erpk\Harvester\Client\Selector;
 use Erpk\Harvester\Filter;
@@ -10,33 +10,65 @@ use Erpk\Common\Citizen\Rank;
 use Erpk\Common\Citizen\Helpers;
 use Erpk\Common\DateTime;
 use Erpk\Common\EntityManager;
+use GuzzleHttp\Event\CompleteEvent;
 
 class CitizenModule extends Module
 {
+
     /**
-     * Returns information on given citizen
-     * @param  int   $id  Citizen ID
-     * @return array      Citizen information
+     * Returns information on a given citizen
+     * @param integer $id Citizen ID
+     * @return array Citizen information
+     * @throws \Exception
+     * @throws \GuzzleHttp\Exception\ClientException
+     * @throws Exception\CitizenNotFoundException
      */
     public function getProfile($id)
     {
         $id = Filter::id($id);
 
-        $request = $this->getClient()->get('citizen/profile/'.$id);
-        $request->getParams()->set('cookies.disable', true);
-
         try {
-            $response = $request->send();
+            $response = $this->getClient()->get('en/citizen/profile/'.$id, ['cookies' => false]);
             $result = self::parseProfile($response->getBody(true));
             $result['id'] = $id;
             return $result;
-        } catch (ClientErrorResponseException $e) {
+        } catch (ClientException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
                 throw new Exception\CitizenNotFoundException('Citizen '.$id.' not found.');
             } else {
                 throw $e;
             }
         }
+    }
+
+    public function getProfiles($ids, $parallel = 1)
+    {
+        $this->getClient()->checkLogin();
+        $requests = [];
+        $results  = [];
+        foreach ($ids as $id) {
+            $requests[] = $this->getClient()->createRequest('GET', 'en/citizen/profile/' . $id);
+        }
+
+        $parse = function (CompleteEvent $event) use (&$results) {
+            $id = Selector\Filter::extractCitizenIdFromUrl($event->getRequest()->getUrl());
+
+            $response = $event->getResponse();
+            if ($response->getStatusCode() == 404) {
+                $result['exists'] = false;
+            } else {
+                $result           = CitizenModule::parseProfile($response->getBody(true));
+                $result['exists'] = true;
+            };
+            $result['id'] = $id;
+            $results[]    = $result;
+        };
+
+        $this->getClient()->sendAll($requests, [
+            'complete' => $parse,
+            'parallel' => $parallel
+        ]);
+        return $results;
     }
     
     /**
@@ -93,10 +125,10 @@ class CitizenModule extends Module
             'div/span/img[contains(@src, "perm_banned")]/../..'
         );
         if ($ban->hasResults()) {
-            $result['ban'] = array(
+            $result['ban'] = [
                 'type' => trim($ban->select('span')->extract()),
                 'reason' => $ban->select('@title')->extract()
-            );
+            ];
         } else {
             $result['ban'] = null;
         }
@@ -153,10 +185,10 @@ class CitizenModule extends Module
         }
         
         $info = $sidebar->select('div[1]');
-        $result['residence'] = array(
+        $result['residence'] = [
             'country' => $countries->findOneByName($info->select('a[1]/@title')->extract()),
             'region'  => $regions->findOneByName($info->select('a[2]/@title')->extract()),
-        );
+        ];
         $result['citizenship'] = $countries->findOneByName((string)$info->select('a[3]/img[1]/@title')->extract());
         
         if (!isset($result['residence']['country'], $result['residence']['region'], $result['citizenship'])) {
@@ -187,12 +219,12 @@ class CitizenModule extends Module
                 $url = $url->extract();
                 $start = strrpos($url, '-')+1;
                 $length = strrpos($url, '/')-$start;
-                $result['party'] = array(
+                $result['party'] = [
                     'id'    =>  (int)substr($url, $start, $length),
                     'name'  =>  $party->select('div/img/@alt')->extract(),
                     'avatar'=>  Selector\Filter::normalizeAvatar($party->select('div/img/@src')->extract()),
                     'role'  =>  trim($party->select('h3[1]')->extract())
-                );
+                ];
             }
         } else {
             $result['party'] = null;
@@ -202,13 +234,13 @@ class CitizenModule extends Module
             $url = $unit->select('div[1]/a[1]/@href')->extract();
             $avatar = $unit->select('div[1]/a[1]/img[1]/@src')->extract();
             $createdAt = preg_replace('#.*([0-9]{4})/([0-9]{2})/([0-9]{2}).*#', '\1-\2-\3', $avatar);
-            $result['military']['unit'] = array(
+            $result['military']['unit'] = [
                 'id'         => (int)substr($url, strrpos($url, '/')+1),
                 'name'       => $unit->select('div[1]/a[1]/span[1]')->extract(),
                 'created_at' => $createdAt,
                 'avatar'     => $avatar,
                 'role'       => trim($unit->select('h3[1]')->extract())
-            );
+            ];
         } else {
             $result['military']['unit'] = null;
         }
@@ -218,12 +250,12 @@ class CitizenModule extends Module
             $start  = strrpos($url, '-')+1;
             $length = strrpos($url, '/')-$start;
             
-            $result['newspaper'] = array(
+            $result['newspaper'] = [
                 'id'   => (int)substr($url, $start, $length),
                 'name' => $newspaper->select('div[1]/a/@title')->extract(),
                 'avatar'=>  Selector\Filter::normalizeAvatar($newspaper->select('div[1]/a[1]/img[1]/@src')->extract()),
                 'role' => trim($newspaper->select('h3[1]')->extract())
-            );
+            ];
         } else {
             $result['newspaper'] = null;
         }
@@ -299,19 +331,23 @@ class CitizenModule extends Module
     public function search($query, $page = 1)
     {
         $page = Filter::page($page);
-        $request = $this->getClient()->get('main/search/');
-        $request->getParams()->set('cookies.disable', true);
-        $request
-            ->getQuery()
-            ->set('q', $query)
-            ->set('page', $page);
-        
-        $response = $request->send();
+        $options = [
+            'query' => [
+                'q' => $query,
+                'page'  => $page
+            ],
+            'headers' => [
+                'Referer' => $this->getClient()->getBaseUrl().'en/economy/exchange-market/'
+            ],
+            'cookies' => false
+        ];
+
+        $response = $this->getClient()->post('en/main/search/', $options);
         $xs = Selector\XPath::loadHTML($response->getBody(true));
         
         $paginator = new Selector\Paginator($xs);
         if ($paginator->isOutOfRange($page) && $page > 1) {
-            return array();
+            return [];
         }
         
         $list = $xs->select('//table[@class="bestof"]/tr');
@@ -319,16 +355,16 @@ class CitizenModule extends Module
         if (!$list->hasResults()) {
             throw new ScrapeException;
         }
-        $result = array();
+        $result = [];
         foreach ($list as $tr) {
             if ($tr->select('th[1]')->hasResults()) {
                 continue;
             }
             $href = $tr->select('td[2]/div[1]/div[2]/a/@href')->extract();
-            $result[] = array(
+            $result[] = [
                 'id'   => (int)substr($href, strrpos($href, '/') + 1),
                 'name' => $tr->select('td[2]/div[1]/div[2]/a')->extract(),
-            );
+            ];
         }
         return $result;
     }

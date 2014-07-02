@@ -34,6 +34,24 @@ class Filter
         preg_match('@citizen/profile/([0-9]+)$@', $url, $citizenId);
         return (int)$citizenId[1];
     }
+
+    public static function extractOrganizationIdFromUrl($url)
+    {
+        preg_match('@economy/citizen\-accounts/([0-9]+)$@', $url, $citizenId);
+        return (int)$citizenId[1];
+    }
+
+    public static function extractCountryFromUrl($url)
+    {
+        preg_match('@country/economy/([\S]+)$@', $url, $country);
+        if ($country[1] == 'Bosnia-Herzegovina') $country = 'Bosnia and Herzegovina';
+        else{
+            $country = str_replace('-', ' ', $country[1]);
+            $country = str_replace('Taiwan', '(Taiwan)', $country);
+            $country = str_replace('FYROM', '(FYROM)', $country);
+        }
+        return $country;
+    }
     
     public static function normalizeAvatar($url)
     {

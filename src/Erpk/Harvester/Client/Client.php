@@ -5,8 +5,8 @@ use Erpk\Harvester\Exception;
 use Erpk\Harvester\Filter;
 use Erpk\Harvester\Client\Plugin\Maintenance\MaintenancePlugin;
 use Erpk\Harvester\Client\Proxy\ProxyInterface;
-use Guzzle\Plugin\Cookie\CookiePlugin;
-use Guzzle\Http\Client as GuzzleClient;
+use GuzzleHttp\Subscriber\Cookie;
+use GuzzleHttp\Client as GuzzleClient;
 
 class Client extends GuzzleClient
 {
@@ -15,30 +15,23 @@ class Client extends GuzzleClient
     protected $session;
     protected $proxy = null;
     
-    public function __construct($locale = 'en')
+    public function __construct()
     {
-        parent::__construct(
-            'http://www.erepublik.com/'.$locale,
-            array('redirect.disable' => true)
-        );
-        
-        $this->getConfig()->set(
-            'curl.options',
-            array(
-                CURLOPT_ENCODING          => '',
-                CURLOPT_FOLLOWLOCATION    => false,
-                CURLOPT_CONNECTTIMEOUT_MS => 3000,
-                CURLOPT_TIMEOUT_MS        => 5000
-            )
-        );
-        
-        $this->getDefaultHeaders()
-            ->set('Expect', '')
-            ->set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
-            ->set('Accept-Language', 'en-US,en;q=0.8');
-        $this->getEventDispatcher()->addSubscriber(new MaintenancePlugin);
+        $defaults = [
+            'base_url' => 'http://www.erepublik.com',
+            'defaults' => [
+                'allow_redirects' => false,
+                'timeout' => 5000,
+                'headers' => [
+                    'Expect' => '',
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language' => 'en-US,en;q=0.8',
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.66 Safari/537.36'
+                ]]
+        ];
 
-        $this->setUserAgent('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.66 Safari/537.36');
+        parent::__construct($defaults);
+        $this->getEmitter()->attach(new MaintenancePlugin);
     }
     
     public function setEmail($email)
@@ -75,8 +68,8 @@ class Client extends GuzzleClient
     {
         if (!isset($this->session)) {
             $this->session = new Session(sys_get_temp_dir().'/'.'erpk['.$this->getEmail().'].session');
-            $cookiePlugin = new CookiePlugin($this->session->getCookieJar());
-            $this->getEventDispatcher()->addSubscriber($cookiePlugin);
+            $cookiePlugin = new Cookie($this->session->getCookieJar());
+            $this->getEmitter()->attach($cookiePlugin);
         }
         return $this->session;
     }
@@ -110,21 +103,23 @@ class Client extends GuzzleClient
     
     public function login()
     {
-        $login = $this->post('login');
-        $login->addPostFields(
-            array(
+        $options = [
+            'query' => [
                 '_token'            =>  md5(time()),
                 'citizen_email'     =>  $this->getEmail(),
                 'citizen_password'  =>  $this->getPassword(),
                 'remember'          =>  1
-            )
-        );
-        
-        $login->setHeader('Referer', $this->getBaseUrl());
-        $login = $login->send();
-        
-        if ($login->isRedirect()) {
-            $homepage = $this->get()->send();
+            ],
+            'headers' => [
+                'Referer' => $this->getBaseUrl()
+            ]
+        ];
+
+        $login = $this->post('en/login', $options);
+
+        $status = $login->getStatusCode();
+        if ($status >= 300 && $status < 400) {
+            $homepage = $this->get('en');
             $hxs = Selector\XPath::loadHTML($homepage->getBody(true));
             $this->parseSessionData($hxs);
         } else {
@@ -134,7 +129,7 @@ class Client extends GuzzleClient
     
     public function logout()
     {
-        $this->post('logout')->send();
+        $this->post('en/logout');
     }
     
     public function checkLogin()
@@ -167,7 +162,7 @@ class Client extends GuzzleClient
         }
 
         $userAvatar = $hxs->select('//a[@class="user_avatar"][1]');
-        $id   = (int)strtr($userAvatar->select('@href')->extract(), array('/en/citizen/profile/' => ''));
+        $id   = (int)strtr($userAvatar->select('@href')->extract(), ['/en/citizen/profile/' => '']);
         $name = $userAvatar->select('@title')->extract();
         
         $this
