@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source source="LOCAL" name="SQLite -ss" uuid="eefe8fef-0a75-4e8f-b276-11f55a27bfe6">
+    <database-info product="SQLite" version="3.7.6.3" jdbc-version="2.1" driver-name="SQLiteJDBC" driver-version="native"/>
+    <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed"/>
+    <schema name="" catalog=""/>
+    <table name="countries" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" length="2000000000" precision="10" nullable="true" jdbcType="4"/>
+      <column name="name" sqlType="TEXT" length="2000000000" precision="10" nullable="true" jdbcType="12"/>
+      <column name="code" sqlType="TEXT" length="2000000000" precision="10" nullable="true" jdbcType="12"/>
+      <primary-key columns="id"/>
+      <index name="code" unique="true" columns="code"/>
+    </table>
+    <table name="industries" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" length="2000000000" precision="10" nullable="true" jdbcType="4"/>
+      <column name="name" sqlType="TEXT" length="2000000000" precision="10" nullable="true" jdbcType="12"/>
+      <column name="code" sqlType="VARCHAR" length="2000000000" precision="10" nullable="true" jdbcType="12"/>
+      <primary-key columns="id"/>
+    </table>
+    <table name="regions" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INT" length="2000000000" precision="10" nullable="true" jdbcType="4"/>
+      <column name="name" sqlType="VARCHAR" length="2000000000" precision="10" nullable="true" jdbcType="12"/>
+      <column name="original_owner_country_id" sqlType="INT" length="2000000000" precision="10" nullable="false" jdbcType="4"/>
+      <column name="permalink" sqlType="VARCHAR" length="2000000000" precision="10" nullable="false" jdbcType="12"/>
+      <column name="zone" sqlType="INT" length="2000000000" precision="10" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <index name="name" unique="true" columns="name"/>
+    </table>
+  </data-source>
+</component>

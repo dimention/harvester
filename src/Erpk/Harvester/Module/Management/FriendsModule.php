@@ -24,20 +24,20 @@ class FriendsModule extends Module
             $citizenId = $citizenIds;
         }
 
-        $request = $this->getClient()->post('main/messages-compose/'.$citizenId);
-        $request->getHeaders()
-            ->set('X-Requested-With', 'XMLHttpRequest')
-            ->set('Referer', $this->getClient()->getBaseUrl().'/main/messages-compose/'.$citizenId);
-        $request->addPostFields(
-            array(
-                    '_token'          => $this->getSession()->getToken(),
-                    'citizen_name'    => $citizens,
-                    'citizen_subject' => $subject,
-                    'citizen_message' => $content
-            )
-        );
+        $options = [
+            'query'   => [
+                '_token'          => $this->getSession()->getToken(),
+                'citizen_name'    => $citizens,
+                'citizen_subject' => $subject,
+                'citizen_message' => $content
+            ],
+            'headers' => [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Referer'          => $this->getClient()->getBaseUrl().'/en/main/messages-compose/'.$citizenId
+            ]
+        ];
 
-        $response = $request->send();
+        $response = $this->getClient()->post('en/main/messages-compose/'.$citizenId, $options);
 
         return $this->parseMessage($response->getBody(true));
     }
@@ -47,40 +47,39 @@ class FriendsModule extends Module
         $threadId = Filter::id($threadId);
         $this->getClient()->checkLogin();
 
-        $request = $this->getClient()->post('main/messages-compose/0');
-        $request->getHeaders()
-        ->set('X-Requested-With', 'XMLHttpRequest')
-        ->set('Referer', $this->getClient()->getBaseUrl().'/main/messages-compose/0');
-        $request->addPostFields(
-                array(
-                        '_token'          => $this->getSession()->getToken(),
-                        'thread_id'    => $threadId,
-                        'citizen_message' => $messagebody
-                )
-        );
+        $options = [
+            'query'   => [
+                '_token'          => $this->getSession()->getToken(),
+                'thread_id'       => $threadId,
+                'citizen_message' => $messagebody
+            ],
+            'headers' => [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Referer'          => $this->getClient()->getBaseUrl().'/en/main/messages-compose/0'
+            ]
+        ];
 
-        $response = $request->send();
+        $response = $this->getClient()->post('en/main/messages-compose/0', $options);
 
         return $this->parseMessage($response->getBody(true));
     }
 
     public function deleteMessage($threadId)
     {
-        $citizenId = Filter::id($citizenId);
         $this->getClient()->checkLogin();
 
-        $request = $this->getClient()->post('main/messages-delete');
-        $request->getHeaders()
-        ->set('X-Requested-With', 'XMLHttpRequest')
-        ->set('Referer', $this->getClient()->getBaseUrl().'/main/messages-inbox');
-        $request->addPostFields(
-                array(
-                        '_token'          => $this->getSession()->getToken(),
-                        'delete_message[]'    => $threadId,
-                )
-        );
+        $options = [
+            'query' => [
+                '_token'          => $this->getSession()->getToken(),
+                'delete_message[]'    => $threadId,
+            ],
+            'headers' => [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Referer' => $this->getClient()->getBaseUrl().'/en/main/messages-inbox'
+            ]
+        ];
 
-        $response = $request->send();
+        $response = $this->getClient()->post('en/main/messages-delete', $options);
 
         return $response->getBody(true);
     }
@@ -90,12 +89,14 @@ class FriendsModule extends Module
         $threadId = Filter::id($threadId);
         $this->getClient()->checkLogin();
 
-        $request = $this->getClient()->get('main/messages-read/'.$threadId);
-        $request->getHeaders()
-        ->set('X-Requested-With', 'XMLHttpRequest')
-        ->set('Referer', $this->getClient()->getBaseUrl().'/main/messages-inbox');
+        $options = [
+            'headers' => [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Referer' => $this->getClient()->getBaseUrl().'/en/main/messages-inbox'
+            ]
+        ];
 
-        $response = $request->send();
+        $response = $this->getClient()->get('main/messages-read/'.$threadId, $options);
 
         return $response->getBody(true);
     }

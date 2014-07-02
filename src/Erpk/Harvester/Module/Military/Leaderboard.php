@@ -30,7 +30,6 @@ class Leaderboard extends Module
         parent::__construct($client);
         if (!isset($country)) {
         	throw new InvalidArgumentException('Country is not specified.');
-        	break;
         }
         $this->setCountry($country);
         $this->setDivision($division);
@@ -122,8 +121,7 @@ class Leaderboard extends Module
         $this->getClient()->checkLogin();
 
         $params = $this->getCountry()->getId().'/'.$this->week.'/'.$this->militaryunitId.'/'.$this->division;
-        $request = $this->getClient()->get('main/leaderboards-'.self::CITIZEN_DAMAGE.'-rankings/'.$params);
-        $response = $request->send();
+        $response = $this->getClient()->get('en/main/leaderboards-'.self::CITIZEN_DAMAGE.'-rankings/'.$params);
             if ($asarray) {
             return $response->json();
         } else {
@@ -136,8 +134,7 @@ class Leaderboard extends Module
         $this->getClient()->checkLogin();
 
         $params = $this->getCountry()->getId().'/'.$this->week.'/'.$this->militaryunitId.'/'.$this->division;
-        $request = $this->getClient()->get('main/leaderboards-'.self::CITIZEN_KILLS.'-rankings/'.$params);
-        $response = $request->send();
+        $response = $this->getClient()->get('en/main/leaderboards-'.self::CITIZEN_KILLS.'-rankings/'.$params);
             if ($asarray) {
             return $response->json();
         } else {
@@ -150,8 +147,8 @@ class Leaderboard extends Module
         $this->getClient()->checkLogin();
 
         $params = $this->getCountry()->getId().'/'.$this->week.'/0/0';
-        $request = $this->getClient()->get('main/leaderboards-'.self::MU_DAMAGE.'-rankings/'.$params);
-        $response = $request->send();
+        $response = $this->getClient()->get('en/main/leaderboards-'.self::MU_DAMAGE.'-rankings/'.$params);
+
             if ($asarray) {
             return $response->json();
         } else {
@@ -178,8 +175,7 @@ class Leaderboard extends Module
         $this->getClient()->checkLogin();
 
         $params = $this->week;
-        $request = $this->getClient()->get('main/leaderboards-'.self::COUNTRY_DAMAGE.'-rankings/'.$params);
-        $response = $request->send();
+        $response = $this->getClient()->get('en/main/leaderboards-'.self::COUNTRY_DAMAGE.'-rankings/'.$params);
         if ($asarray) {
             return $response->json();
         } else {

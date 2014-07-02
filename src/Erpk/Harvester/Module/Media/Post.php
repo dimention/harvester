@@ -12,13 +12,13 @@ class Post
 
     public function toArray()
     {
-        return array(
+        return [
                 'postId'       =>  $this->postId,
-                'profileId'   =>  $this->profileId,
-                'profileName'    =>  $this->profileName,
+                'profileId'    =>  $this->profileId,
+                'profileName'  =>  $this->profileName,
                 'reportRef'    =>  $this->reportRef,
-                'time'    =>  $this->time,
-                'message'    =>  $this->message,
-        );
+                'time'         =>  $this->time,
+                'message'      =>  $this->message,
+        ];
     }
 }

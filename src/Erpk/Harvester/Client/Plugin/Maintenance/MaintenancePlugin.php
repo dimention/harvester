@@ -1,23 +1,21 @@
 <?php
 namespace Erpk\Harvester\Client\Plugin\Maintenance;
 
-use Guzzle\Common\Event;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use GuzzleHttp\Event;
 
-class MaintenancePlugin implements EventSubscriberInterface
+class MaintenancePlugin implements Event\SubscriberInterface
 {
-    public static function getSubscribedEvents()
+    public function getEvents()
     {
-        return array(
-            'request.receive.status_line' => 'onRequestReceiveStatusLine',
-            //'request.sent'              => array('onRequestSent', 100),
-        );
+        return [
+            'complete' => ['onRequestReceiveStatusLine']
+        ];
     }
     
-    public function onRequestReceiveStatusLine(Event $event)
+    public function onRequestReceiveStatusLine(Event\CompleteEvent $event)
     {
-        if ($event['status_code'] == 200 &&
-           $event['reason_phrase'] == 'Service Unavailable'
+        if ($event->getResponse()->getStatusCode() == 200 &&
+           $event->getResponse()->getReasonPhrase() == 'Service Unavailable'
         ) {
             throw new MaintenanceException;
         }

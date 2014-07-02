@@ -6,7 +6,7 @@ use Erpk\Harvester\Module\Military\Exception\CampaignNotFoundException;
 use Erpk\Harvester\Module\Military\Exception\UnitNotFoundException;
 use Erpk\Harvester\Module\Military\Exception\RegimentNotFoundException;
 use Erpk\Harvester\Exception\ScrapeException;
-use Guzzle\Http\Exception\ClientErrorResponseException;
+use GuzzleHttp\Exception\ClientException;
 use Erpk\Harvester\Client\Selector;
 use Erpk\Common\Citizen\Rank;
 use Erpk\Common\Entity\Campaign;
@@ -24,7 +24,7 @@ class MilitaryModule extends Module
     {
         $this->getClient()->checkLogin();
         
-        $response = $this->getClient()->get('military/campaigns')->send();
+        $response = $this->getClient()->get('en/military/campaigns');
         $hxs = Selector\XPath::loadHTML($response->getBody(true));
         
         $listing = $hxs->select('//div[@id="battle_listing"]');
@@ -46,13 +46,42 @@ class MilitaryModule extends Module
             foreach ($campaigns as $li) {
                 $id = $li->select('@id')->extract();
                 $id = (int)substr($id, strpos($id, '-')+1);
-                $result[$type][] = $id;
-                $result['all'][] = $id;
+
+                $country1 = $li->select('img[@class="side_flags"]');
+                $country1_flag = $country1->select('@src')->extract();
+                $country1_name = $country1->select('@title')->extract();
+
+                $points1 = $li->select('q[@class="scorePoints score_left"]')->extract();
+                $points2 = $li->select('q[@class="scorePoints score_right"]')->extract();
+
+                $country2 = $li->select('div[@class="opponent_holder"]/img[@class="side_flags"]');
+                $country2_flag = $country2->select('@src')->extract();
+                $country2_name = $country2->select('@title')->extract();
+
+                $region = $li->select('a[@class="county"]/span')->extract();
+
+                $time_left = $li->select('span[@class="countyTime"]')->extract();
+
+                $res = [
+                    "attacker" => [
+                        "name" => $country1_name,
+                        "flag" => $country1_flag,
+                        "points" => $points1
+                    ],
+                    "defender" => [
+                        "name"   => $country2_name,
+                        "flag"   => $country2_flag,
+                        "points" => $points2
+                    ],
+                    "region" => $region,
+                    "time" => $time_left
+                ];
+                $result[$type][$id] = $res;
+                $result['all'][$id] = $res;
             }
-            sort($result[$type]);
+            //sort($result[$type]);
         }
-        $result['all'] = array_unique($result['all']);
-        sort($result['all']);
+        //sort($result['all']);
         return $result;
     }
     
@@ -134,11 +163,10 @@ class MilitaryModule extends Module
         $this->filter($id, 'id');
         
         $this->getClient()->checkLogin();
-        $request = $this->getClient()->get('military/battlefield/'.$id);
 
         try {
-            $response = $request->send();
-        } catch (ClientErrorResponseException $e) {
+            $response = $this->getClient()->get('en/military/battlefield/' . $id);
+        } catch (ClientException $e) {
             if ($e->getResponse()->getStatusCode() == 404) {
                 throw new CampaignNotFoundException;
             } else {
@@ -148,19 +176,19 @@ class MilitaryModule extends Module
         /**
          * Resistance wars FIX
          */
-        if ($response->isRedirect() &&
-            preg_match('#^'.$this->getClient()->getBaseUrl().'/wars/show/([0-9]+)$#', $response->getLocation())
+        if ($response->getStatusCode()==301 &&
+            preg_match('#^'.$this->getClient()->getBaseUrl().'/en/wars/show/([0-9]+)$#', $response->getHeader('Location', true))
         ) {
-            $war = $this->getClient()->get($response->getLocation())->send();
+            $war = $this->getClient()->get($response->getHeader('Location', true));
             preg_match(
-                '#'.$this->getClient()->getBaseUrl().'/military/battlefield-choose-side/[0-9]+/[0-9]+#',
+                '#'.$this->getClient()->getBaseUrl().'/en/military/battlefield-choose-side/[0-9]+/[0-9]+#',
                 $war->getBody(true),
                 $links
             );
             
-            $response = $this->getClient()->get($links[0])->send();
-            if ($response->isRedirect()) {
-                $response = $this->getClient()->get($response->getLocation())->send();
+            $response = $this->getClient()->get($links[0]);
+            if ($response->getStatusCode() == 301) {
+                $response = $this->getClient()->get($response->getHeader('Location', true));
             }
         }
         
@@ -179,8 +207,7 @@ class MilitaryModule extends Module
         $this->getClient()->checkLogin();
 
         $countries = $this->getEntityManager()->getRepository('Erpk\Common\Entity\Country');
-        $request = $this->getClient()->get('military/battle-stats/'.$campaign->getId().'/1');
-        $stats = $request->send()->json();
+        $stats = $this->getClient()->get('en/military/battle-stats/'.$campaign->getId().'/1')->json();
 
         $finished = $stats['division'][$campaign->getAttacker()->getId()]['total'] >= 83 ||
                     $stats['division'][$campaign->getDefender()->getId()]['total'] >= 83;
@@ -245,6 +272,13 @@ class MilitaryModule extends Module
         
         $result['is_finished'] = $finished;
         return $result;
+    }
+
+    public function getCampaignStatsSimple($id)
+    {
+        $this->getClient()->checkLogin();
+        $stats     = $this->getClient()->get('en/military/battle-stats/' . $id . '/1')->json();
+        return $stats;
     }
     
     /**
